@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>src_qml/SquareVisual.qml</file>
+    </qresource>
+</RCC>
