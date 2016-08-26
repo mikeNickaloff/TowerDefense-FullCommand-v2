@@ -10,7 +10,8 @@ class End : public Square
     Q_OBJECT
 public:
     explicit End(QObject *parent = 0);
-
+    int m_row;
+    int m_col;
 signals:
 
 public slots:

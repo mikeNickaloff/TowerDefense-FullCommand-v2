@@ -43,8 +43,12 @@ public:
     int testArg;
     QVariantList readSquares();
 QVariantList readGuns();
+QList<Square*> readPath(int row, int col);
+QList<Square*> next_path_square(QList<Square*> cur_path);
     int m_rowCount;
     int m_colCount;
+    bool is_neighbor_of_end(int row, int col);
+    bool is_neighbor_of_start(int row, int col);
 signals:
     void testArgChanged(int newArg);
     void squaresChanged(QVariantList newMap);
@@ -72,6 +76,8 @@ public slots:
     void placeGun(int row, int col, int gunType);
 
     void populate_dead_ends();
+
+
 
 };
 
