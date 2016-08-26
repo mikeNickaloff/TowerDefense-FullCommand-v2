@@ -10,32 +10,45 @@ class Square;
 class Wall;
 class Start;
 class End;
+class Game;
+class Gun;
 class Board : public QObject
 {
     Q_PROPERTY(int testArg MEMBER testArg NOTIFY testArgChanged)
     Q_PROPERTY(QVariantList squares READ readSquares WRITE setSquares NOTIFY squaresChanged)
+    Q_PROPERTY(QVariantList guns READ readGuns NOTIFY gunsChanged)
     Q_OBJECT
     Q_PROPERTY(int rowCount MEMBER m_rowCount NOTIFY rowCountChanged)
     Q_PROPERTY(int colCount MEMBER m_colCount NOTIFY colCountChanged)
 public:
-    explicit Board(QObject *parent = 0);
+    explicit Board(QObject *parent = 0, Game* i_game = 0);
+    Game* m_game;
+
     QHash<QPair<int, int> , Square*> m_squares;
     QHash<QPair<int, int> , Wall*> m_walls;
     QHash<QPair<int, int> , Start*> m_starts;
     QHash<QPair<int, int> , End*> m_ends;
+    QHash<QPair<int, int> , Gun*> m_guns;
+
+    QHash<QPair<int, int>, Square*> m_deadEnds;
+
+    QList<Square*> find_neighbors(int row, int col);
+
 
     Wall* new_wall;
     Start* new_start;
     End* new_end;
     Square* new_square;
+    Gun* new_gun;
     int testArg;
     QVariantList readSquares();
-
+QVariantList readGuns();
     int m_rowCount;
     int m_colCount;
 signals:
     void testArgChanged(int newArg);
     void squaresChanged(QVariantList newMap);
+    void gunsChanged(QVariantList newList);
     void squareDataAssigned(QVariant row, QVariant col, QVariant xpos, QVariant ypos);
     void rowCountChanged(int newCount);
     void colCountChanged(int newCount);
@@ -56,7 +69,9 @@ public slots:
     void placeSquare(int row, int col);
     void placeStart(int row, int col);
     void placeEnd(int row, int col);
+    void placeGun(int row, int col, int gunType);
 
+    void populate_dead_ends();
 
 };
 

@@ -17,19 +17,23 @@
 #include "src_elements/wall.h"
 #include "src_elements/start.h"
 #include "src_elements/end.h"
+#include "src_elements/gun.h"
 
 int main(int argc, char *argv[])
 {
 
     QGuiApplication app(argc, argv);
-   // Game* m_game = new Game;
+
     //m_game->createBoard();
     QQmlApplicationEngine engine;
     qmlRegisterType<Game>("com.towerdefense.fullcommand", 2, 0, "Game");
     qmlRegisterType<Board>("com.towerdefense.fullcommand", 2, 0, "Board");
     qmlRegisterType<Square>("com.towerdefense.fullcommand", 2, 0, "Square");
+    qmlRegisterType<Gun>("com.towerdefense.fullcommand", 2, 0, "Gun");
+   // Game* m_game = new Game(0, engine.rootContext());
 
   //  engine.rootContext()->setContextProperty("game", m_game);
+    //m_game->createBoard();
    // engine.rootContext()->setContextProperty("gameboard", m_game->m_board);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

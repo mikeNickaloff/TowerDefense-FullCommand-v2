@@ -6,14 +6,17 @@
 #include "../src_elements/start.h"
 #include "../src_elements/end.h"
 #include <QObject>
+#include <QQmlContext>
 
-Game::Game(QObject *parent) : QObject(parent)
+
+
+Game::Game(QObject *parent, QQmlContext *i_context) : QObject(parent), m_context(i_context)
 {
 
 }
 void Game::createBoard() {
     this->m_map = new Map(this);
-    this->m_board = new Board(this);
+    this->m_board = new Board(this, this);
    this->connect(m_map, SIGNAL(colCountChanged(int)), m_board, SLOT(changeColCount(int)));
     this->connect(m_map, SIGNAL(rowCountChanged(int)), m_board, SLOT(changeRowCount(int)));
     this->connect(m_map, SIGNAL(placeWall(int, int)), m_board, SLOT(placeWall(int,int)));

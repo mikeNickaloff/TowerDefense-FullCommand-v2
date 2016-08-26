@@ -3,8 +3,9 @@
 
 #include <QtCore/QObject>
 #include <QtCore/qglobal.h>
-
-class End : public QObject
+#include "square.h"
+class Square;
+class End : public Square
 {
     Q_OBJECT
 public:

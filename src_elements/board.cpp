@@ -4,10 +4,13 @@
 #include "../src_elements/start.h"
 #include "../src_elements/end.h"
 #include "../src_elements/gun.h"
+#include "../src_game/game.h"
 #include <QObject>
 #include <QtDebug>
+#include <QQmlContext>
 
-Board::Board(QObject *parent) : QObject(parent)
+
+Board::Board(QObject *parent, Game *i_game) : QObject(parent), m_game(i_game)
 {
     testArg = 0;
     // qRegisterMetaType<Square>("Square");
@@ -59,6 +62,7 @@ void Board::placeSquare(int row, int col) {
     new_square->m_row = row;
     new_square->m_col = col;
 
+
 }
 
 void Board::placeStart(int row, int col) {
@@ -73,6 +77,16 @@ void Board::placeEnd(int row, int col) {
     new_end = new End(this);
     QPair<int, int> pair = qMakePair(row, col);
     m_ends[pair] = new_end;
+}
+void Board::placeGun(int row, int col, int gunType) {
+    eraseTile(row, col);
+    new_gun = new Gun(this);
+    QPair<int, int> pair = qMakePair(row, col);
+    m_guns[pair] = new_gun;
+    new_gun->m_row = row;
+    new_gun->m_col = col;
+    new_gun->m_gunType = gunType;
+
 }
 
 void Board::setSquares(QVariantList newMap) {
@@ -91,4 +105,54 @@ QVariantList Board::readSquares() {
 
    // qDebug() << rv;
     return rv;
+}
+
+QVariantList Board::readGuns() {
+    QVariantList rv;
+    QList<Gun*> tmp_guns;
+    tmp_guns << this->m_guns.values();
+    int u = 0;
+    //qDebug() << tmp_squares;
+    foreach (Gun* gu, tmp_guns) {
+        u++;
+        rv.append(QVariant::fromValue(gu));
+    }
+
+    qDebug() << rv;
+    return rv;
+}
+
+QList<Square*> Board::find_neighbors(int row, int col) {
+    QList<Square*> rv;
+    if (m_squares.contains(qMakePair(row, col + 1))) {
+        rv << m_squares.value(qMakePair(row, col + 1));
+    }
+    if (m_squares.contains(qMakePair(row + 1, col))) {
+        rv << m_squares.value(qMakePair(row + 1, col));
+    }
+    if (m_squares.contains(qMakePair(row - 1, col))) {
+        rv << m_squares.value(qMakePair(row - 1, col));
+    }
+    if (m_squares.contains(qMakePair(row, col - 1))) {
+        rv << m_squares.value(qMakePair(row, col - 1));
+    }
+
+    if (m_ends.contains(qMakePair(row, col + 1))) {
+        rv << m_ends.value(qMakePair(row, col + 1));
+    }
+    if (m_ends.contains(qMakePair(row + 1, col))) {
+        rv << m_ends.value(qMakePair(row + 1, col));
+    }
+    if (m_ends.contains(qMakePair(row - 1, col))) {
+        rv << m_ends.value(qMakePair(row - 1, col));
+    }
+    if (m_ends.contains(qMakePair(row, col - 1))) {
+        rv << m_ends.value(qMakePair(row, col - 1));
+    }
+
+    return rv;
+
+}
+void Board::populate_dead_ends() {
+
 }

@@ -16,11 +16,13 @@ public:
     Gun* m_gun;
     int m_row;
     int m_col;
+    QObject* m_squareVisual;
 signals:
 
     void rowChanged(int newRow);
     void colChanged(int newCol);
 public slots:
+
 };
 
 #endif // SQUARE_H
