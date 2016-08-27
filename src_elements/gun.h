@@ -11,6 +11,7 @@ class Gun : public QObject
     Q_PROPERTY(int row MEMBER m_row NOTIFY rowChanged)
     Q_PROPERTY(int col MEMBER m_col NOTIFY colChanged)
     Q_PROPERTY(int gunType MEMBER m_gunType NOTIFY gunTypeChanged)
+    Q_PROPERTY(QObject* gunVisual MEMBER m_gunVisual NOTIFY gunVisualChanged)
     Q_PROPERTY(double rangeLowAccuracy MEMBER m_rangeLowAccuracy NOTIFY rangeLowAccuracyChanged)
 public:
     explicit Gun(QObject *parent = 0);
@@ -23,6 +24,14 @@ public:
 
     int m_row;
     int m_col;
+
+
+    QObject* m_gunVisual;
+    Q_INVOKABLE void set_gunVisual(QObject* i_gunVisual) {
+        m_gunVisual = i_gunVisual;
+        //QQmlEngine::setObjectOwnership(m_squareVisual, QQmlEngine::JavaScriptOwnership);
+    }
+
     int m_gunType;
 
 
@@ -71,6 +80,7 @@ public:
 signals:
     void rowChanged(int newRow);
     void colChanged(int newCol);
+    void gunVisualChanged(QObject* newObj);
     void gunTypeChanged(int newGunType);
     void rangeLowAccuracyChanged(double newRange);
 public slots:

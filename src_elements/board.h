@@ -22,7 +22,7 @@ class Board : public QObject
     Q_OBJECT
     Q_PROPERTY(int rowCount MEMBER m_rowCount NOTIFY rowCountChanged)
     Q_PROPERTY(int colCount MEMBER m_colCount NOTIFY colCountChanged)
-    Q_PROPERTY(QVariant lastSpawnedAttacker MEMBER m_lastSpawnedAttacker NOTIFY lastSpawnedAttackerChanged)
+    Q_PROPERTY(QObject* lastSpawnedAttacker MEMBER m_lastSpawnedAttacker NOTIFY lastSpawnedAttackerChanged)
 public:
     explicit Board(QObject *parent = 0, Game* i_game = 0);
     Game* m_game;
@@ -58,9 +58,9 @@ QVariantList readAttackers();
     bool is_neighbor_of_end(int row, int col);
     bool is_neighbor_of_start(int row, int col);
     int distance_from_end(Square* square);
+QList<Square*> m_best_path;
 
-
-    QVariant m_lastSpawnedAttacker;
+    QObject* m_lastSpawnedAttacker;
 signals:
     void testArgChanged(int newArg);
     void squaresChanged(QVariantList newMap);
@@ -69,7 +69,7 @@ signals:
     void rowCountChanged(int newCount);
     void colCountChanged(int newCount);
     void attackersChanged(QVariantList newList);
-    void lastSpawnedAttackerChanged(QVariant newLast);
+    void lastSpawnedAttackerChanged(QObject* newLast);
 public slots:
 
     void setSquares(QVariantList newMap);

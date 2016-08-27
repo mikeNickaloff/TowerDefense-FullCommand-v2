@@ -14,6 +14,8 @@ class Attacker : public QObject
     Q_PROPERTY(QVariant target MEMBER m_target NOTIFY targetChanged)
     Q_PROPERTY(QVariant xpos MEMBER m_xpos NOTIFY xposChanged)
     Q_PROPERTY(QVariant ypos MEMBER m_ypos NOTIFY yposChanged)
+    Q_PROPERTY(QObject* attackerVisual MEMBER m_attackerVisual NOTIFY attackerVisualChanged)
+
 public:
     explicit Attacker(QObject *parent = 0);
     QList<Square*> m_path;
@@ -25,6 +27,12 @@ public:
     int m_attackerType;
     QVariant m_xpos;
     QVariant m_ypos;
+    QObject* m_attackerVisual;
+    Q_INVOKABLE void set_attackerVisual(QObject* i_attackerVisual) {
+        m_attackerVisual = i_attackerVisual;
+        //QQmlEngine::setObjectOwnership(m_squareVisual, QQmlEngine::JavaScriptOwnership);
+    }
+
 signals:
     void speedChanged(QVariant newSpeed);
     void attackerTypeChanged(int newAttackerType);
@@ -32,6 +40,7 @@ signals:
     void targetChanged(QVariant newTarget);
     void xposChanged(QVariant newVal);
     void yposChanged(QVariant newVal);
+    void attackerVisualChanged(QObject* newObj);
 public slots:
     void next_target();
 };
