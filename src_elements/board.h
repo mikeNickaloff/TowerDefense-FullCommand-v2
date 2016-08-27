@@ -12,14 +12,17 @@ class Start;
 class End;
 class Game;
 class Gun;
+class Attacker;
 class Board : public QObject
 {
     Q_PROPERTY(int testArg MEMBER testArg NOTIFY testArgChanged)
     Q_PROPERTY(QVariantList squares READ readSquares WRITE setSquares NOTIFY squaresChanged)
     Q_PROPERTY(QVariantList guns READ readGuns NOTIFY gunsChanged)
+    Q_PROPERTY(QVariantList attackers READ readAttackers NOTIFY attackersChanged)
     Q_OBJECT
     Q_PROPERTY(int rowCount MEMBER m_rowCount NOTIFY rowCountChanged)
     Q_PROPERTY(int colCount MEMBER m_colCount NOTIFY colCountChanged)
+    Q_PROPERTY(QVariant lastSpawnedAttacker MEMBER m_lastSpawnedAttacker NOTIFY lastSpawnedAttackerChanged)
 public:
     explicit Board(QObject *parent = 0, Game* i_game = 0);
     Game* m_game;
@@ -32,6 +35,8 @@ public:
 
     QHash<QPair<int, int>, Square*> m_deadEnds;
 
+    QHash<int, Attacker*> m_attackers;
+
     QList<Square*> find_neighbors(int row, int col);
 
 
@@ -40,15 +45,22 @@ public:
     End* new_end;
     Square* new_square;
     Gun* new_gun;
+    Attacker* new_attacker;
     int testArg;
     QVariantList readSquares();
 QVariantList readGuns();
 QList<Square*> readPath(int row, int col);
 QList<Square*> next_path_square(QList<Square*> cur_path);
+
+QVariantList readAttackers();
     int m_rowCount;
     int m_colCount;
     bool is_neighbor_of_end(int row, int col);
     bool is_neighbor_of_start(int row, int col);
+    int distance_from_end(Square* square);
+
+
+    QVariant m_lastSpawnedAttacker;
 signals:
     void testArgChanged(int newArg);
     void squaresChanged(QVariantList newMap);
@@ -56,6 +68,8 @@ signals:
     void squareDataAssigned(QVariant row, QVariant col, QVariant xpos, QVariant ypos);
     void rowCountChanged(int newCount);
     void colCountChanged(int newCount);
+    void attackersChanged(QVariantList newList);
+    void lastSpawnedAttackerChanged(QVariant newLast);
 public slots:
 
     void setSquares(QVariantList newMap);
@@ -74,8 +88,11 @@ public slots:
     void placeStart(int row, int col);
     void placeEnd(int row, int col);
     void placeGun(int row, int col, int gunType);
-
+    void placeAttacker(int row, int col, int attackerType, QVariant speed);
+    void correctPaths();
+void removeAttacker(Attacker *att);
     void populate_dead_ends();
+
 
 
 

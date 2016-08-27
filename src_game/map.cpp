@@ -10,8 +10,8 @@ Map::Map(QObject *parent) : QObject(parent)
 
 }
 void Map::create_blank_map() {
-    this->rowCount = 30;
-    this->colCount = 40;
+    this->rowCount = 20;
+    this->colCount = 15;
     emit this->Map::rowCountChanged(rowCount);
     emit this->Map::colCountChanged(colCount);
     for (int i=0; i<rowCount; i++) {

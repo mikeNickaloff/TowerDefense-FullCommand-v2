@@ -5,6 +5,7 @@ import com.towerdefense.fullcommand 2.0
 Item {
 
     property Gun gun
+    property AttackerVisual target
   /*  Rectangle {
         border.color: "black"
         border.width: 2

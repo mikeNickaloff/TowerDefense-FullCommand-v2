@@ -5,6 +5,7 @@
 #include "../src_elements/end.h"
 #include "../src_elements/gun.h"
 #include "../src_game/game.h"
+#include "attacker.h"
 #include <QObject>
 #include <QtDebug>
 #include <QQmlContext>
@@ -88,7 +89,7 @@ void Board::placeGun(int row, int col, int gunType) {
     if (!is_neighbor_of_start(row, col)) {
         eraseTile(row, col);
         bool valid_placement = true;
-        //this->m_deadEnds.clear();
+      // this->m_deadEnds.clear();
         populate_dead_ends();
 
         foreach (Start* tmpstart, m_starts.values()) {
@@ -107,11 +108,66 @@ void Board::placeGun(int row, int col, int gunType) {
             new_gun->m_row = row;
             new_gun->m_col = col;
             new_gun->m_gunType = gunType;
+            new_gun->m_rangeLowAccuracy = 100;
+         //   this->m_deadEnds.clear();
+            populate_dead_ends();
+
         } else {
             placeSquare(row, col);
+           // this->m_deadEnds.clear();
+            populate_dead_ends();
+
         }
     }
 
+}
+
+void Board::placeAttacker(int row, int col, int attackerType, QVariant speed) {
+
+    new_attacker = new Attacker(this);
+
+    int u = 0;
+    while (m_attackers.contains(u)) {
+        u++;
+    }
+    m_attackers[u] = new_attacker;
+    new_attacker->m_speed = speed;
+    new_attacker->m_attackerType = attackerType;
+    QList<Square*> tmpPath;
+    tmpPath << readPath(1, 1);
+    new_attacker->m_path << tmpPath;
+    new_attacker->m_current = QVariant::fromValue(new_attacker->m_path.takeFirst());
+    new_attacker->m_target = QVariant::fromValue(new_attacker->m_path.takeFirst());
+    m_lastSpawnedAttacker = QVariant::fromValue(new_attacker);
+}
+void Board::correctPaths() {
+    foreach (Attacker* attacker, m_attackers.values()) {
+        QList<Square*> tmpPath;
+        QVariant cur = attacker->m_current;
+        tmpPath << cur.value<Square*>();
+         attacker->m_path.clear();
+         attacker->m_path << this->next_path_square(tmpPath);
+
+        //attacker->m_current = QVariant::fromValue(attacker->m_path.takeFirst());
+        //attacker->m_target = QVariant::fromValue(attacker->m_path.takeFirst());
+    }
+}
+
+void Board::removeAttacker(Attacker* att) {
+
+    int keyToRemove = -1;
+    if (m_attackers.values().contains(att)) {
+        foreach (int u, m_attackers.keys()) {
+            Attacker* chkAtt = m_attackers.value(u);
+            if (chkAtt == att) {
+                keyToRemove = u;
+                break;
+            }
+
+        }
+        m_attackers.remove(keyToRemove);
+
+    }
 }
 
 void Board::setSquares(QVariantList newMap) {
@@ -175,10 +231,22 @@ QList<Square*> Board::next_path_square(QList<Square*> cur_path) {
         neighbors.removeAll(sq);
     }
     if (neighbors.count() > 0) {
+        int random = (qrand() % 255);
+        Square* chosen = neighbors.first();
+        int dist = distance_from_end(chosen);
+        if ((random % 2) == 0) {
+        foreach (Square* nsq, neighbors) {
+            if (this->distance_from_end(nsq) < dist) {
+                dist = this->distance_from_end(nsq);
+                chosen = nsq;
+            }
+        }
 
+        cp << chosen;
+        } else {
+            cp << neighbors.first();
+        }
 
-
-        cp << neighbors.first();
         return next_path_square(cp);
     } else {
         QList<Square*> errorList;
@@ -213,10 +281,28 @@ QList<Square*> Board::find_neighbors(int row, int col) {
     return final;
 
 }
+
+QVariantList Board::readAttackers() {
+    QVariantList rv;
+    QList<Attacker*> tmp_attackers;
+    tmp_attackers << this->m_attackers.values();
+    int u = 0;
+    //qDebug() << tmp_squares;
+    foreach (Attacker* att, tmp_attackers) {
+        u++;
+        rv.append(QVariant::fromValue(att));
+    }
+
+    // qDebug() << rv;
+    return rv;
+}
+
+
+
 void Board::populate_dead_ends() {
     //this->m_deadEnds.clear();
     foreach (Square* sq, m_squares.values()) {
-        if ((find_neighbors(sq->m_row, sq->m_col).count() == 0) && (!is_neighbor_of_end(sq->m_row, sq->m_col))) {
+        if ((find_neighbors(sq->m_row, sq->m_col).count() < 1) && (!is_neighbor_of_end(sq->m_row, sq->m_col))) {
             if (!m_deadEnds.contains(qMakePair(sq->m_row, sq->m_col))) {
                 m_deadEnds[qMakePair(sq->m_row, sq->m_col)] = sq;
                 populate_dead_ends();
@@ -224,6 +310,7 @@ void Board::populate_dead_ends() {
 
         }
     }
+
 
 }
 bool Board::is_neighbor_of_end(int row, int col) {
@@ -259,4 +346,15 @@ bool Board::is_neighbor_of_start(int row, int col) {
     if (m_starts.contains(p8)) { rv = true; }
     return rv;
 
+}
+int Board::distance_from_end(Square* square) {
+    int rv = 99999;
+    foreach (End* end, m_ends.values()) {
+        int row_diff = qAbs(end->m_row - square->m_row);
+        int col_diff = qAbs(end->m_col - square->m_col);
+        int total = row_diff + col_diff;
+        if (total < rv) { rv = total; }
+    }
+
+    return rv;
 }

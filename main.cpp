@@ -18,6 +18,7 @@
 #include "src_elements/start.h"
 #include "src_elements/end.h"
 #include "src_elements/gun.h"
+#include "src_elements/attacker.h"
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +31,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<Board>("com.towerdefense.fullcommand", 2, 0, "Board");
     qmlRegisterType<Square>("com.towerdefense.fullcommand", 2, 0, "Square");
     qmlRegisterType<Gun>("com.towerdefense.fullcommand", 2, 0, "Gun");
+    qmlRegisterType<Attacker>("com.towerdefense.fullcommand", 2, 0, "Attacker");
    // Game* m_game = new Game(0, engine.rootContext());
 
   //  engine.rootContext()->setContextProperty("game", m_game);
