@@ -20,3 +20,4 @@ void Attacker::next_target() {
 
     }
 }
+

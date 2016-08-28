@@ -92,26 +92,26 @@ void Board::placeGun(int row, int col, int gunType) {
 
     //Square* old_square = this->m_squares.value(qMakePair(row, col));
     if (!is_neighbor_of_start(row, col)) {
-       // eraseTile(row, col);
+        // eraseTile(row, col);
         bool valid_placement = true;
-      //  this->m_deadEnds.clear();
-       // populate_dead_ends();
+        //  this->m_deadEnds.clear();
+        // populate_dead_ends();
         //correctPaths();
 
-        foreach (Start* tmpstart, m_starts.values()) {
-            QList<Square*> check_list;
-            check_list << readPath(tmpstart->m_row, tmpstart->m_col);
+        //foreach (Start* tmpstart, m_starts.values()) {
+          //  QList<Square*> check_list;
+            //check_list << readPath(tmpstart->m_row, tmpstart->m_col);
             //qDebug() << check_list;
-            if (check_list.count() == 1) {
-                valid_placement = false;
-            } else {
+            //if (check_list.count() == 1) {
+             //   valid_placement = false;
+            //} else {
                 //m_best_path.clear();
                 //m_best_path << check_list;
-            }
-        }
+            //}
+        //}
         if (valid_placement) {
             //m_squares.remove(qMakePair(row, col));
-          // delete old_square->m_squareVisual;
+            // delete old_square->m_squareVisual;
             new_gun = new Gun(this);
             QPair<int, int> pair = qMakePair(row, col);
             m_guns[pair] = new_gun;
@@ -119,8 +119,8 @@ void Board::placeGun(int row, int col, int gunType) {
             new_gun->m_col = col;
             new_gun->m_gunType = gunType;
             new_gun->m_rangeLowAccuracy = 150;
-            populate_dead_ends();
-            foreach (Attacker* attacker, m_attackers.values()) {
+           // populate_dead_ends();
+            /*foreach (Attacker* attacker, m_attackers.values()) {
                 attacker->m_path.clear();
                 QList<Square*> tmpPath;
                 tmpPath << m_squares.value(pair);
@@ -129,8 +129,8 @@ void Board::placeGun(int row, int col, int gunType) {
 
 
 
-            }
-               this->m_deadEnds.clear();
+            } */
+            //this->m_deadEnds.clear();
 
 
             // correctPaths();
@@ -138,8 +138,8 @@ void Board::placeGun(int row, int col, int gunType) {
         } else {
             //this->m_squares[qMakePair(row, col)] = old_square;
 
-             this->m_deadEnds.clear();
-            populate_dead_ends();
+           // this->m_deadEnds.clear();
+           // populate_dead_ends();
             //  correctPaths();
 
         }
@@ -163,8 +163,8 @@ void Board::placeAttacker(int row, int col, int attackerType, QVariant speed) {
         tmpPath << m_best_path;
     } else { */
 
-        tmpPath << m_squares.value(qMakePair(row, col));
-        tmpPath << this->next_path_square(tmpPath);
+    tmpPath << m_best_path;
+
     /* }
     if (tmpPath.count() > 2) { this->m_best_path << tmpPath; } */
     new_attacker->m_path << tmpPath;
@@ -180,7 +180,7 @@ void Board::correctPaths() {
         QObject* cur = qvariant_cast<QObject*>(attacker->m_current);
         tmpPath << qobject_cast<Square*>(cur);
         attacker->m_path.clear();
-        attacker->m_path << this->next_path_square(tmpPath);
+        attacker->m_path << this->m_best_path;
         //attacker->m_path << this->m_best_path;
 
         //attacker->m_current = QVariant::fromValue(attacker->m_path.takeFirst());
@@ -238,19 +238,7 @@ QVariantList Board::readGuns() {
     return rv;
 }
 QList<Square*> Board::readPath(int row, int col) {
-    populate_dead_ends();
-    QList<Square*> rv;
-    QList<Square*> neighbors;
-    neighbors << this->find_neighbors(row, col);
-
-    // qDebug() << "Read Path Neighbors: " << neighbors;
-
-    if (neighbors.count() > 0) {
-        rv << neighbors.first();
-        rv << next_path_square(rv);
-    }
-    //qDebug() << "Final value:" << rv;
-    return rv;
+   return m_best_path;
 }
 
 QList<Square*> Board::next_path_square(QList<Square*> cur_path) {
@@ -272,27 +260,27 @@ QList<Square*> Board::next_path_square(QList<Square*> cur_path) {
             Square* chosen = neighbors.first();
             int dist = distance_from_end(chosen);
 
-                foreach (Square* nsq, neighbors) {
-                    if (this->distance_from_end(nsq) < dist) {
-                        dist = this->distance_from_end(nsq);
-                        chosen = nsq;
-                    }
+            foreach (Square* nsq, neighbors) {
+                if (this->distance_from_end(nsq) < dist) {
+                    dist = this->distance_from_end(nsq);
+                    chosen = nsq;
                 }
-
-                cp << chosen;
             }
 
-            QList<Square*> chk;
-            chk << next_path_square(cp);
-            if (chk.count() > 0) {
-                return chk;
-            }
-        } else {
-            QList<Square*> errorList;
-            return errorList;
+            cp << chosen;
         }
+
+        QList<Square*> chk;
+        chk << next_path_square(cp);
+        if (chk.count() > 0) {
+            return chk;
+        }
+    } else {
         QList<Square*> errorList;
         return errorList;
+    }
+    QList<Square*> errorList;
+    return errorList;
 
 }
 
@@ -348,14 +336,14 @@ void Board::populate_dead_ends() {
     foreach (Square* sq, m_squares.values()) {
         if ((find_neighbors(sq->m_row, sq->m_col).count() < 1) && (!is_neighbor_of_end(sq->m_row, sq->m_col))) {
             //if (!m_deadEnds.contains(qMakePair(sq->m_row, sq->m_col))) {
-          //      m_deadEnds[qMakePair(sq->m_row, sq->m_col)] = sq;
-                //madeChanges = true;
-           // }
+            //      m_deadEnds[qMakePair(sq->m_row, sq->m_col)] = sq;
+            //madeChanges = true;
+            // }
 
         }
     }
     //if (madeChanges)
-     //   populate_dead_ends();
+    //   populate_dead_ends();
 
 
 }
@@ -404,3 +392,15 @@ int Board::distance_from_end(Square* square) {
 
     return rv;
 }
+void Board::add_path_data(QVariant c1, QVariant r1) {
+
+
+        QPair<int,int> pair = qMakePair(r1.toInt(), c1.toInt());
+        //qDebug() << "adding" << pair;
+        if (m_squares.contains(pair)) {
+            m_best_path << m_squares.value(pair);
+        }
+    }
+  //  this->correctPaths();
+
+

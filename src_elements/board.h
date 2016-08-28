@@ -63,6 +63,8 @@ QVariantList readAttackers();
 QList<Square*> m_best_path;
 
     QObject* m_lastSpawnedAttacker;
+
+
 signals:
     void testArgChanged(int newArg);
     void squaresChanged(QVariantList newMap);
@@ -73,7 +75,8 @@ signals:
     void attackersChanged(QVariantList newList);
     void lastSpawnedAttackerChanged(QObject* newLast);
 public slots:
-
+    void add_path_data(QVariant c1, QVariant r1);
+    void clear_path_data() { m_best_path.clear(); }
     void setSquares(QVariantList newMap);
 
 

@@ -8,5 +8,27 @@
         <file>src_qml/images/attackers/1.png</file>
         <file>src_qml/AttackerVisual.qml</file>
         <file>src_qml/ProjectileVisual.qml</file>
+        <file>src_js/logic.js</file>
+        <file>src_js/core/DiagonalMovement.js</file>
+        <file>src_js/core/Grid.js</file>
+        <file>src_js/core/heap.js</file>
+        <file>src_js/core/Heuristic.js</file>
+        <file>src_js/core/Node.js</file>
+        <file>src_js/core/Util.js</file>
+        <file>src_js/finders/AStarFinder.js</file>
+        <file>src_js/finders/BestFirstFinder.js</file>
+        <file>src_js/finders/BiAStarFinder.js</file>
+        <file>src_js/finders/BiBestFirstFinder.js</file>
+        <file>src_js/finders/BiBreadthFirstFinder.js</file>
+        <file>src_js/finders/BiDijkstraFinder.js</file>
+        <file>src_js/finders/BreadthFirstFinder.js</file>
+        <file>src_js/finders/DijkstraFinder.js</file>
+        <file>src_js/finders/IDAStarFinder.js</file>
+        <file>src_js/finders/JPFAlwaysMoveDiagonally.js</file>
+        <file>src_js/finders/JPFMoveDiagonallyIfAtMostOneObstacle.js</file>
+        <file>src_js/finders/JPFMoveDiagonallyIfNoObstacles.js</file>
+        <file>src_js/finders/JPFNeverMoveDiagonally.js</file>
+        <file>src_js/finders/JumpPointFinder.js</file>
+        <file>src_js/finders/JumpPointFinderBase.js</file>
     </qresource>
 </RCC>
