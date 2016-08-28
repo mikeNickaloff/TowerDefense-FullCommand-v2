@@ -1,6 +1,7 @@
 #include "attacker.h"
 #include "square.h"
-Attacker::Attacker(QObject *parent) : QObject(parent)
+#include <QQuickItem>
+Attacker::Attacker(QObject *parent) : QQuickItem()
 {
 m_xpos = 0;
 m_ypos = 0;

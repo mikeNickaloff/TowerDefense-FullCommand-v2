@@ -68,10 +68,23 @@ Window {
 
             var squ = tmp_sq[u];
             var sqvis = squ.squareVisual;
+            if (sqvis == null) {
+                var component;
+                component = Qt.createComponent("src_qml/SquareVisual.qml");
+                if (component.status == Component.Ready) {
+                    var dynamicObject = component.createObject(background, { "square" : squ });
+                    dynamicObject.width = (background.width / game.board.colCount);
+                    dynamicObject.height = (background.height / game.board.rowCount);
+                    dynamicObject.x = (background.width / game.board.colCount) * squ.col;
+                    dynamicObject.y = (background.height / game.board.rowCount) * squ.row;
+                    squ.set_squareVisual(dynamicObject);
+                }
+            } else {
             sqvis.width = (background.width / game.board.colCount);
             sqvis.height = (background.height / game.board.rowCount);
             sqvis.x = (background.width / game.board.colCount) * squ.col;
             sqvis.y = (background.height / game.board.rowCount) * squ.row;
+            }
 
         }
     }
@@ -114,7 +127,7 @@ Window {
 
     function init_attackers() {
 
-        clear_type_from_board("AttackerVisual");
+       // clear_type_from_board("AttackerVisual");
 
 
         // var existingAttackerVisuals = new Array(1000);
@@ -165,6 +178,30 @@ Window {
         }
     }
 
+
+    property var projectileHash: new Array;
+
+    function create_projectile(gunObj, attackerObj) {
+        var component;
+        component = Qt.createComponent("src_qml/ProjectileVisual.qml");
+        if (component.status == Component.Ready) {
+
+             var angle = Math.atan2(attackerObj.attackerVisual.y - gunObj.gunVisual.y, attackerObj.attackerVisual.x - gunObj.gunVisual.x);
+
+            var ecdx = 30 * Math.cos(angle);
+            var ecdy = 30 * Math.sin(angle);
+
+
+            var newObj = component.createObject(background, { "origin_x" : gunObj.gunVisual.x , "origin_y" : gunObj.gunVisual.y, "ctx" : ecdx, "cty" : ecdy, "speed" : 30, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : 10, "max_damage" : 10, "min_damage" : 10 } );
+            newObj.width = (background.width / game.board.colCount) * 0.20;
+            newObj.height = (background.height / game.board.rowCount) * 0.2;
+            newObj.x = gunObj.gunVisual.x;
+            newObj.y = gunObj.gunVisual.y;
+
+            projectileHash.push(newObj);
+        }
+    }
+
     function getX(col) {
         return (background.width / game.board.colCount) * (col - 0);
     }
@@ -195,26 +232,41 @@ Window {
 
                     attviz.startX = attviz.x;
                     attviz.startY = attviz.y;
-                    attviz.endX = attObj.target.squareVisual.x;
-                    attviz.endY = attObj.target.squareVisual.y;
+                    if (attObj.target != null) {
+                    var tgt = attObj.target;
+                        if (tgt.squareVisual != null) {
+                    attviz.endX = tgt.squareVisual.x;
+                    attviz.endY = tgt.squareVisual.y;
                     var angle = Math.atan2(attviz.endY - attviz.y, attviz.endX - attviz.x);
 
                     attviz.ecdx = attObj.speed * Math.cos(angle);
                     attviz.ecdy = attObj.speed * Math.sin(angle);
                     attviz.waiting_for_waypoint = false;
+                        } else {
+
+
+                        }
+                    } else {
+                        attviz.visible = false;
+                        attviz.opacity = 0.0;
+                        //attObj.attackerVisual.destroy();
+                       // attviz.destroy();
+                       // game.board.removeAttacker(attObj);
+
+                    }
                 }
 
 
                 attviz.step();
-                if (attObj.speed == 0) {
+                if (attObj.atEndOfPath) {
                     // bgch[c].destroy();
-
-                    game.board.removeAttacker(attObj);
+                    attviz.visible = false;
+                    attviz.opacity = 0.0;
                     //attObj.attackerVisual.destroy();
                     //attviz.destroy();
+                    //game.board.removeAttacker(attObj);
 
-
-                    init_attackers();
+                  //  init_attackers();
 
                 }
 
@@ -226,7 +278,20 @@ Window {
 
 
             }
+            for (var p=0; p<projectileHash.length; p++) {
+                var proObj = projectileHash[p];
+                if (proObj != null) {
+                    proObj.x += proObj.ctx;
+                    proObj.y += proObj.cty;
+                    var TL = truelength(proObj.origin_x, proObj.origin_y, proObj.x, proObj.y);
+                    if (TL > proObj.max_dist) {
+                        projectileHash[p].destroy();
+
+                    }
+                }
+            }
         }
+
     }
         function angleTo(cx, cy, ex, ey) {
             var dy = ey - cy;
@@ -241,13 +306,13 @@ Window {
         }
        Timer {
             id: timerSpawn;
-            interval: 10000; running:true; repeat: true;
+            interval: 7000; running:true; repeat: true;
             onTriggered: function() {
 
 
 
-                game.board.placeAttacker(0,1, 1, 8.3);
-                init_attackers();
+                game.board.placeAttacker(1,1,1, 18);
+                //init_attackers();
                 if (enemyCount == 0) { init_attackers(); } else {
 
                     create_atttacker(game.board.lastSpawnedAttacker);
@@ -266,6 +331,7 @@ Window {
             repeat: true;
 
             onTriggered: function() {
+                if (rotO == 0) { init_squares(); rotO = 1; }
 
                 for (var t=0; t<game.board.guns.length; t++) {
 
@@ -276,7 +342,7 @@ Window {
                     var guny = gunObj.y
                     var closest_att;
                     var closest_dist = 99999;
-                    for (var a=0; a<game.board.attackers; a++) {
+                    for (var a=0; a<game.board.attackers.length; a++) {
 
                         var attP = game.board.attackers[a];
                         var attObj = attP.attackerVisual;
@@ -293,7 +359,15 @@ Window {
                     }
                     if (closest_dist <= gunP.rangeLowAccuracy) {
                         var tmpAngle = angleTo(gunx, guny, closest_att.x, closest_att.y);
-                        gunObj.rotation = tmpAngle;
+                        if (gunObj.rotation != tmpAngle) {
+                            gunObj.rotation = tmpAngle;
+
+                            if (gunObj.next_fire < Date.now()) {
+                                create_projectile(gunP, closest_att.attacker);
+
+                                gunObj.next_fire = parseInt(Date.now() + 1000);
+                            }
+                        }
                     }
 
                 }
@@ -317,26 +391,28 @@ Window {
                             var ypos = mapToItem(obj, mx, my).y;
                             if ((xpos >= 0) && (xpos <= obj.width)) {
                                 if ((ypos >= 0) && (ypos <= obj.height)) {
+
                                     game.board.placeGun(obj.square.row, obj.square.col, 1);
-                                   // obj.square.squareVisual.destroy();
+
+
 
                                     update_squares();
                                     init_guns();
-                                    init_attackers();
-                                    game.board.correctPaths();
+                                    //init_attackers();
+                                    //game.board.correctPaths();
 
-                                    return " " + c + " " + obj + " " + mx + " " + my;
+                                    //return " " + c + " " + obj + " " + mx + " " + my;
                                 }
                             }
                         }
                     }
-                    update_squares();
-                    init_guns();
-                    init_attackers();
+                    //update_squares();
+                    //init_guns();
+                   // init_attackers();
                     //init_attackers();
 
                     //init_attackers();
-                    game.board.correctPaths();
+                    //game.board.correctPaths();
                     return "nothing";
                 } else {
                     return "uninitialized.";

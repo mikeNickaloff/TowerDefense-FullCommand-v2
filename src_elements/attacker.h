@@ -4,8 +4,9 @@
 #include <QtCore/QObject>
 #include <QtCore/qglobal.h>
 #include <QVariant>
+#include <QQuickItem>
 class Square;
-class Attacker : public QObject
+class Attacker : public QQuickItem
 {
     Q_OBJECT
     Q_PROPERTY(QVariant speed MEMBER m_speed NOTIFY speedChanged)
@@ -15,6 +16,7 @@ class Attacker : public QObject
     Q_PROPERTY(QVariant xpos MEMBER m_xpos NOTIFY xposChanged)
     Q_PROPERTY(QVariant ypos MEMBER m_ypos NOTIFY yposChanged)
     Q_PROPERTY(QObject* attackerVisual MEMBER m_attackerVisual NOTIFY attackerVisualChanged)
+    Q_PROPERTY(bool atEndOfPath READ isAtEndOfPath)
 
 public:
     explicit Attacker(QObject *parent = 0);
@@ -33,6 +35,12 @@ public:
         //QQmlEngine::setObjectOwnership(m_squareVisual, QQmlEngine::JavaScriptOwnership);
     }
 
+
+    bool isAtEndOfPath() {
+        if (m_path.count() < 3) { return true; }
+        return false;
+    }
+
 signals:
     void speedChanged(QVariant newSpeed);
     void attackerTypeChanged(int newAttackerType);
@@ -43,6 +51,8 @@ signals:
     void attackerVisualChanged(QObject* newObj);
 public slots:
     void next_target();
+
+
 };
 
 #endif // ATTACKER_H

@@ -13,6 +13,7 @@ class End;
 class Game;
 class Gun;
 class Attacker;
+class Projectile;
 class Board : public QObject
 {
     Q_PROPERTY(int testArg MEMBER testArg NOTIFY testArgChanged)
@@ -32,7 +33,7 @@ public:
     QHash<QPair<int, int> , Start*> m_starts;
     QHash<QPair<int, int> , End*> m_ends;
     QHash<QPair<int, int> , Gun*> m_guns;
-
+    QHash<int, Projectile*> m_projectiles;
     QHash<QPair<int, int>, Square*> m_deadEnds;
 
     QHash<int, Attacker*> m_attackers;
@@ -46,6 +47,7 @@ public:
     Square* new_square;
     Gun* new_gun;
     Attacker* new_attacker;
+    Projectile* new_projectile;
     int testArg;
     QVariantList readSquares();
 QVariantList readGuns();
@@ -89,6 +91,7 @@ public slots:
     void placeEnd(int row, int col);
     void placeGun(int row, int col, int gunType);
     void placeAttacker(int row, int col, int attackerType, QVariant speed);
+
     void correctPaths();
 void removeAttacker(Attacker *att);
     void populate_dead_ends();

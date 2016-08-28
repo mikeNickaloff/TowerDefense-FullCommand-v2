@@ -7,5 +7,6 @@
         <file>src_qml/images/projectiles/1.png</file>
         <file>src_qml/images/attackers/1.png</file>
         <file>src_qml/AttackerVisual.qml</file>
+        <file>src_qml/ProjectileVisual.qml</file>
     </qresource>
 </RCC>

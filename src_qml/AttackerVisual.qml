@@ -41,6 +41,9 @@ Item {
             attacker.ypos = y;
               attacker.next_target();
               waiting_for_waypoint = true;
+            if (attacker.atEndOfPath) {
+
+            }
           }
 
 
