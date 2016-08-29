@@ -118,7 +118,7 @@ void Board::placeGun(int row, int col, int gunType) {
             new_gun->m_row = row;
             new_gun->m_col = col;
             new_gun->m_gunType = gunType;
-            new_gun->m_rangeLowAccuracy = 150;
+            new_gun->m_rangeLowAccuracy = 200;
            // populate_dead_ends();
             /*foreach (Attacker* attacker, m_attackers.values()) {
                 attacker->m_path.clear();
@@ -171,7 +171,7 @@ void Board::placeAttacker(int row, int col, int attackerType, QVariant speed) {
     new_attacker->m_current = QVariant::fromValue(new_attacker->m_path.takeFirst());
     new_attacker->m_target = QVariant::fromValue(new_attacker->m_path.takeFirst());
     m_lastSpawnedAttacker = new_attacker;
-    new_attacker->m_speed = 8;
+    //new_attacker->m_speed = 8;
 
 }
 void Board::correctPaths() {

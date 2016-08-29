@@ -17,6 +17,8 @@ Item {
 
 
     }
+    property var gunsInRange: new Array(1000);
+    property bool isActiveTarget: false
 
 }
 

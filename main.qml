@@ -22,6 +22,7 @@ Window {
         Component.onCompleted: {
             game.createBoard();
             init_squares();
+            for (var i=0; i<1000; i++) { projectileHash[i] = null; }
             //  var shRoute = get_shortest_path(0,0, game.board.colCount - 1, game.board.rowCount - 1);
 
             // game.board.set_path_data(shRoute);
@@ -106,21 +107,68 @@ Window {
         clear_type_from_board("GunVisual");
         var component;
         component = Qt.createComponent("src_qml/GunVisual.qml");
-        var tmp_sq = game.board.guns;
-        for (var u=0; u<tmp_sq.length; u++) {
-            var squ = tmp_sq[u];
+        var tmp_gu = game.board.guns;
+        for (var u=0; u<tmp_gu.length; u++) {
+            var gu = tmp_gu[u];
             if (component.status == Component.Ready) {
-                var dynamicObject = component.createObject(background, { "gun" : squ });
+                var dynamicObject = component.createObject(background, { "gun" : gu });
                 dynamicObject.width = (background.width / game.board.colCount);
                 dynamicObject.height = (background.height / game.board.rowCount);
-                dynamicObject.x = (background.width / game.board.colCount) * squ.col;
-                dynamicObject.y = (background.height / game.board.rowCount) * squ.row;
-                squ.set_gunVisual(dynamicObject);
+                dynamicObject.x = (background.width / game.board.colCount) * gu.col;
+                dynamicObject.y = (background.height / game.board.rowCount) * gu.row;
+                gu.set_gunVisual(dynamicObject);
+
             }
 
         }
 
     }
+    function create_gun(row, col) {
+        var component;
+        component = Qt.createComponent("src_qml/GunVisual.qml");
+        var tmp_gu = game.board.guns;
+        for (var u=0; u<tmp_gu.length; u++) {
+            var gu = tmp_gu[u];
+            if ((gu.row == row) && (gu.col == col)) {
+                if (component.status == Component.Ready) {
+                    var dynamicObject = component.createObject(background, { "gun" : gu });
+                    dynamicObject.width = (background.width / game.board.colCount);
+                    dynamicObject.height = (background.height / game.board.rowCount);
+                    dynamicObject.x = (background.width / game.board.colCount) * gu.col;
+                    dynamicObject.y = (background.height / game.board.rowCount) * gu.row;
+                    gu.set_gunVisual(dynamicObject);
+
+                    var squ = gu;
+                    var sqvis = dynamicObject;
+                    var min_sq_col = squ.col - Math.round(gu.rangeLowAccuracy / sqvis.width) - 1;
+                    var min_sq_row = squ.row - Math.round(gu.rangeLowAccuracy / sqvis.height) - 1;
+                    var max_sq_col = squ.col + Math.round(gu.rangeLowAccuracy / sqvis.width) + 1;
+                    var max_sq_row = squ.row + Math.round(gu.rangeLowAccuracy / sqvis.width) + 1;
+                    for (var w=0; w<game.board.squares.length; w++) {
+
+                        var sqObj = game.board.squares[w];
+                        var sqEl = sqObj.squareVisual;
+                        if ((sqObj.row > min_sq_row) && (sqObj.row < max_sq_row)) {
+                            if ((sqObj.col > min_sq_col) && (sqObj.col < max_sq_col)) {
+
+
+
+                                var TL = truelength(gu.gunVisual.x, gu.gunVisual.y, sqEl.x, sqEl.y);
+                                if (TL < gu.rangeLowAccuracy) {
+                                    gu.gunVisual.availableTargetSquares.push(sqObj);
+                                    sqEl.gunsInRange.push(gu);
+                                }
+                            }
+                        }
+                    }
+
+
+                }
+            }
+
+        }
+    }
+
     function update_guns() {
         var tmp_sq = game.board.guns;
 
@@ -134,6 +182,10 @@ Window {
             sqvis.height = (background.height / game.board.rowCount);
             sqvis.x = (background.width / game.board.colCount) * squ.col;
             sqvis.y = (background.height / game.board.rowCount) * squ.row;
+
+
+            var gu = squ;
+
 
         }
     }
@@ -192,26 +244,28 @@ Window {
     }
 
 
-    property var projectileHash: new Array;
+    property var projectileHash: new Array(1005);
+    property var projectileComponent: Qt.createComponent("src_qml/ProjectileVisual.qml");
+    function create_projectile(gunObj, target_x, target_y) {
 
-    function create_projectile(gunObj, attackerObj) {
-        var component;
-        component = Qt.createComponent("src_qml/ProjectileVisual.qml");
+        var component = projectileComponent;
         if (component.status == Component.Ready) {
 
-            var angle = Math.atan2(attackerObj.attackerVisual.y - gunObj.gunVisual.y, attackerObj.attackerVisual.x - gunObj.gunVisual.x);
+            var angle = Math.atan2(target_y - gunObj.gunVisual.y , target_x - gunObj.gunVisual.x);
+            //var angle = gunObj.gunVisual.rotation + 90;
 
-            var ecdx = 20 * Math.cos(angle);
-            var ecdy = 20 * Math.sin(angle);
+            var ecdx = 25 * Math.cos(angle);
+            var ecdy = 25 * Math.sin(angle);
 
 
-            var newObj = component.createObject(background, { "origin_x" : gunObj.gunVisual.x , "origin_y" : gunObj.gunVisual.y, "ctx" : ecdx, "cty" : ecdy, "speed" : 20, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : 10, "max_damage" : 10, "min_damage" : 10 } );
-            newObj.width = (background.width / game.board.colCount) * 0.20;
-            newObj.height = (background.height / game.board.rowCount) * 0.2;
-            newObj.x = gunObj.gunVisual.x;
-            newObj.y = gunObj.gunVisual.y;
-
-            projectileHash.push(newObj);
+            var newObj = component.createObject(background, { "origin_x" : gunObj.gunVisual.x , "origin_y" : gunObj.gunVisual.y, "ctx" : ecdx, "cty" : ecdy, "speed" : 25, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : 10, "max_damage" : 10, "min_damage" : 10 } );
+            newObj.width = (background.width / game.board.colCount) * 0.30;
+            newObj.height = (background.height / game.board.rowCount) * 0.3;
+            newObj.x = gunObj.gunVisual.x + (gunObj.gunVisual.width * 0.5);
+            newObj.y = gunObj.gunVisual.y + (gunObj.gunVisual.height * 0.5);
+            var o = 0;
+            while ((o < 1000) && (projectileHash[o] != null)) { o++; }
+            projectileHash[o] = newObj;
         }
     }
 
@@ -229,14 +283,23 @@ Window {
         return str.indexOf(className + "(") == 0 || str.indexOf(className + "_QML") == 0;
     }
     property int enemyCount: 0;
+    property int curAttackerArrayStart: 0
+    property int curAttackerArrayStop : 10
+    property int numAttackersPerFrame: 10
+    property int curProjectileArrayStart: 0
+    property int curProjectileArrayStop: 1000
+    property int numProjectilesPerFrame: 1000
     Timer {
         id:timerAttackers;
-        interval: 50; running: true; repeat: true
+        interval: 200; running: true; repeat: true
         onTriggered: function() {
 
 
+            if (curAttackerArrayStop > game.board.attackers.length) {
+                curAttackerArrayStop = game.board.attackers.length;
+            }
 
-            for (var r=0; r<game.board.attackers.length; r++) {
+            for (var r=curAttackerArrayStart; r<curAttackerArrayStop; r++) {
                 var attObj = game.board.attackers[r];
                 var attviz = attObj.attackerVisual;
 
@@ -255,6 +318,9 @@ Window {
                             attviz.ecdx = attObj.speed * Math.cos(angle);
                             attviz.ecdy = attObj.speed * Math.sin(angle);
                             attviz.waiting_for_waypoint = false;
+
+                            tgt.squareVisual.isActiveTarget = true;
+                            attObj.current.squareVisual.isActiveTarget = false;
                         } else {
 
 
@@ -267,6 +333,8 @@ Window {
                         // game.board.removeAttacker(attObj);
 
                     }
+                } else {
+                    attObj.target.squareVisual.isActiveTarget = true;
                 }
 
 
@@ -291,21 +359,66 @@ Window {
 
 
             }
-            for (var p=0; p<projectileHash.length; p++) {
+            if (curAttackerArrayStop >= game.board.attackers.length) {
+                curAttackerArrayStart = 0;
+                curAttackerArrayStop = numAttackersPerFrame;
+            } else {
+
+                curAttackerArrayStart = curAttackerArrayStop;
+                curAttackerArrayStop += numAttackersPerFrame;
+            }
+
+
+
+        }
+
+    }
+
+    Timer {
+        id:timerProjectiles;
+        interval: 10; running: true; repeat: true
+        onTriggered: function() {
+
+
+            if (curProjectileArrayStop > projectileHash.length) {
+                curProjectileArrayStop = projectileHash.length;
+            }
+
+
+            for (var p=curProjectileArrayStart; p<curProjectileArrayStop; p++) {
                 var proObj = projectileHash[p];
                 if (proObj != null) {
                     proObj.x += proObj.ctx;
                     proObj.y += proObj.cty;
+
                     var TL = truelength(proObj.origin_x, proObj.origin_y, proObj.x, proObj.y);
+                    // var TL = Math.abs(proObj.x - proObj.origin_x) + Math.abs(proObj.y - proObj.origin_y);
                     if (TL > proObj.max_dist) {
                         projectileHash[p].destroy();
+                        projectileHash[p] = null;
 
+                    }
+                } else {
+                    curAttackerArrayStop++;
+                    if (curProjectileArrayStop > projectileHash.length) {
+                        curProjectileArrayStop = projectileHash.length;
                     }
                 }
             }
-        }
 
+            if (curProjectileArrayStop >= projectileHash.length) {
+                curProjectileArrayStart = 0;
+                curProjectileArrayStop = numProjectilesPerFrame;
+            } else {
+
+                curProjectileArrayStart = curProjectileArrayStop;
+                curProjectileArrayStop += numProjectilesPerFrame;
+            }
+
+
+        }
     }
+
     function angleTo(cx, cy, ex, ey) {
         var dy = ey - cy;
         var dx = ex - cx;
@@ -319,11 +432,12 @@ Window {
     }
     Timer {
         id: timerSpawn;
-        interval: 10000; running:false; repeat: true;
+        interval: 15000; running:false; repeat: true;
         onTriggered: function() {
 
             clear_type_from_board("ProjectileVisual");
-            game.board.placeAttacker(1,1,1, 11);
+            for (var i=0; i<1000; i++) { projectileHash[i] = null; }
+            game.board.placeAttacker(1,1,1, 6);
             //init_attackers();
             if (enemyCount == 0) { init_attackers(); } else {
 
@@ -338,7 +452,7 @@ Window {
     property int rotO: 0;
     Timer {
         id: timerRotateGuns;
-        interval: 160;
+        interval: 360;
         running: true;
         repeat: true;
 
@@ -352,9 +466,9 @@ Window {
 
                 var gunx = gunObj.x
                 var guny = gunObj.y
-                var closest_att;
+                var closest_sq;
                 var closest_dist = 99999;
-                for (var a=0; a<game.board.attackers.length; a++) {
+                /*for (var a=0; a<game.board.attackers.length; a++) {
 
                     var attP = game.board.attackers[a];
                     var attObj = attP.attackerVisual;
@@ -368,14 +482,28 @@ Window {
                     }
 
 
+                } */
+                for (var a=0; a<gunObj.availableTargetSquares.length; a++) {
+                    var tmp_sq = gunObj.availableTargetSquares[a];
+                    if (tmp_sq.squareVisual.isActiveTarget == true) {
+                        var sqx = tmp_sq.squareVisual.x;
+                        var sqy = tmp_sq.squareVisual.y;
+                        var TL = truelength(gunx, guny, sqx, sqy);
+                        if (TL < closest_dist) {
+                            closest_sq = tmp_sq;
+                            closest_dist = TL;
+                        }
+                    }
+
                 }
+
                 if (closest_dist <= gunP.rangeLowAccuracy) {
-                    var tmpAngle = angleTo(gunx, guny, closest_att.x, closest_att.y);
+                    var tmpAngle = angleTo(gunx, guny, closest_sq.squareVisual.x, closest_sq.squareVisual.y);
                     if (gunObj.rotation != tmpAngle) {
                         gunObj.rotation = tmpAngle;
 
                         if (gunObj.next_fire < Date.now()) {
-                            create_projectile(gunP, closest_att.attacker);
+                            create_projectile(gunP, closest_sq.squareVisual.x, closest_sq.squareVisual.y);
 
                             gunObj.next_fire = parseInt(Date.now() + 1000);
                         }
@@ -432,7 +560,8 @@ Window {
                                 timerSpawn.running = true;
 
                                 update_squares();
-                                init_guns();
+                                create_gun(obj.square.row, obj.square.col);
+                               //init_guns();
                                 //init_attackers();
                                 //game.board.correctPaths();
 
@@ -445,7 +574,7 @@ Window {
                 //init_guns();
                 // init_attackers();
                 //init_attackers();
-
+                update_guns();
                 //init_attackers();
                 //game.board.correctPaths();
                 return "guns built - enemy inbound";

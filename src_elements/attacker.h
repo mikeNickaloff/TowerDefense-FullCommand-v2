@@ -37,7 +37,7 @@ public:
 
 
     bool isAtEndOfPath() {
-        if (m_path.count() < 3) { return true; }
+        if (m_path.count() < 2) { return true; }
         return false;
     }
 

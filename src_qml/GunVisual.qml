@@ -19,6 +19,7 @@ Item {
 
 
     } */
+    property var availableTargetSquares: new Array
     Image {
         source: "./images/guns/" + gun.gunType + ".png"
         anchors.centerIn: parent
