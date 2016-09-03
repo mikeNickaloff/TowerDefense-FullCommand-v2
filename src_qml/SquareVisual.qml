@@ -12,12 +12,14 @@ Item {
         height: parent.height
         id: rect
 
+
         anchors.centerIn: parent
 
 
 
     }
-    property var gunsInRange: new Array(1000);
+    property int distanceToEnd: 255;
+    property var gunsInRange: new Array;
     property bool isActiveTarget: false
 
 }

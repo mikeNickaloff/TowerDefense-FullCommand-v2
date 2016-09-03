@@ -148,8 +148,9 @@ Window {
 
                         var sqObj = game.board.squares[w];
                         var sqEl = sqObj.squareVisual;
-                        if ((sqObj.row > min_sq_row) && (sqObj.row < max_sq_row)) {
-                            if ((sqObj.col > min_sq_col) && (sqObj.col < max_sq_col)) {
+
+                        if ((sqObj.row >= min_sq_row) && (sqObj.row <= max_sq_row)) {
+                            if ((sqObj.col >= min_sq_col) && (sqObj.col <= max_sq_col)) {
 
 
 
@@ -239,6 +240,9 @@ Window {
             }
 
             squ.set_attackerVisual(dynamicObject);
+            //dynamicObject.anim1.running = true;
+            //dynamicObject.anim2.running = true;
+
 
         }
     }
@@ -258,7 +262,7 @@ Window {
             var ecdy = 25 * Math.sin(angle);
 
 
-            var newObj = component.createObject(background, { "origin_x" : gunObj.gunVisual.x , "origin_y" : gunObj.gunVisual.y, "ctx" : ecdx, "cty" : ecdy, "speed" : 25, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : 10, "max_damage" : 10, "min_damage" : 10 } );
+            var newObj = component.createObject(background, { "origin_x" : gunObj.gunVisual.x , "origin_y" : gunObj.gunVisual.y, "ctx" : ecdx, "cty" : ecdy, "speed" : 25, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : 10, "max_damage" : 10, "min_damage" : 10, "possibleHitSquares" : gunObj.gunVisual.availableTargetSquares, "target_x" : target_x, "target_y" : target_y } );
             newObj.width = (background.width / game.board.colCount) * 0.30;
             newObj.height = (background.height / game.board.rowCount) * 0.3;
             newObj.x = gunObj.gunVisual.x + (gunObj.gunVisual.width * 0.5);
@@ -283,16 +287,18 @@ Window {
         return str.indexOf(className + "(") == 0 || str.indexOf(className + "_QML") == 0;
     }
     property int enemyCount: 0;
+    property int numEnemiesPerWave: 5;
     property int curAttackerArrayStart: 0
-    property int curAttackerArrayStop : 10
-    property int numAttackersPerFrame: 10
+    property int curAttackerArrayStop : 50
+    property int numAttackersPerFrame: 50
     property int curProjectileArrayStart: 0
-    property int curProjectileArrayStop: 1000
-    property int numProjectilesPerFrame: 1000
+    property int curProjectileArrayStop: 350
+    property int numProjectilesPerFrame: 350
     Timer {
         id:timerAttackers;
-        interval: 200; running: true; repeat: true
+        interval: 500; running: true; repeat: false;
         onTriggered: function() {
+            timerAttackers.stop();
 
 
             if (curAttackerArrayStop > game.board.attackers.length) {
@@ -301,63 +307,80 @@ Window {
 
             for (var r=curAttackerArrayStart; r<curAttackerArrayStop; r++) {
                 var attObj = game.board.attackers[r];
-                var attviz = attObj.attackerVisual;
+                if (attObj != null) {
+                    var attviz = attObj.attackerVisual;
 
-                if (attviz.waiting_for_waypoint) {
-                    //   attacker.next_target();
+                    if (attviz.waiting_for_waypoint) {
+                        //   attacker.next_target();
 
-                    attviz.startX = attviz.x;
-                    attviz.startY = attviz.y;
-                    if (attObj.target != null) {
-                        var tgt = attObj.target;
-                        if (tgt.squareVisual != null) {
-                            attviz.endX = tgt.squareVisual.x;
-                            attviz.endY = tgt.squareVisual.y;
-                            var angle = Math.atan2(attviz.endY - attviz.y, attviz.endX - attviz.x);
+                        attviz.startX = attviz.x;
+                        attviz.startY = attviz.y;
+                        if (attObj.target != null) {
+                            var tgt = attObj.target;
+                            if (tgt.squareVisual != null) {
+                                attviz.endX = tgt.squareVisual.x;
+                                attviz.endY = tgt.squareVisual.y;
+                                // var angle = Math.atan2(attviz.endY - attviz.y, attviz.endX - attviz.x);
 
-                            attviz.ecdx = attObj.speed * Math.cos(angle);
-                            attviz.ecdy = attObj.speed * Math.sin(angle);
-                            attviz.waiting_for_waypoint = false;
+                                //attviz.ecdx = attObj.speed * Math.cos(angle);
+                                //attviz.ecdy = attObj.speed * Math.sin(angle);
+                                //attviz.xanim.start();
+                                //attviz.yanim.start();
+                                attviz.waiting_for_waypoint = false;
 
-                            tgt.squareVisual.isActiveTarget = true;
-                            attObj.current.squareVisual.isActiveTarget = false;
+                                tgt.squareVisual.isActiveTarget = true;
+                                tgt.squareVisual.distanceToEnd = attObj.distanceToEnd;
+                                for (var g=0; g<tgt.squareVisual.gunsInRange.length; g++) {
+                                    var tmp_gun = tgt.squareVisual.gunsInRange[g];
+                                    if (tmp_gun != null) {
+                                        if (tmp_gun.gunVisual != null) {
+                                            tmp_gun.gunVisual.find_target();
+                                        }
+                                    }
+                                }
+
+                                attObj.current.squareVisual.isActiveTarget = false;
+                            } else {
+
+
+                            }
                         } else {
-
+                            attviz.visible = false;
+                            attviz.opacity = 0.0;
+                            //attObj.attackerVisual.destroy();
+                            // attviz.destroy();
+                            // game.board.removeAttacker(attObj);
 
                         }
                     } else {
+                        attObj.target.squareVisual.isActiveTarget = true;
+                    }
+
+
+                    //  attviz.step();
+                    attviz.startAnim();
+
+                    if (attObj.atEndOfPath) {
+                        // bgch[c].destroy();
                         attviz.visible = false;
                         attviz.opacity = 0.0;
+                        attObj.target.squareVisual.isActiveTarget = false;
                         //attObj.attackerVisual.destroy();
-                        // attviz.destroy();
-                        // game.board.removeAttacker(attObj);
+                        attviz.destroy();
+                        game.board.removeAttacker(attObj);
+
+                        //  init_attackers();
 
                     }
-                } else {
-                    attObj.target.squareVisual.isActiveTarget = true;
-                }
 
 
-                attviz.step();
-                if (attObj.atEndOfPath) {
-                    // bgch[c].destroy();
-                    attviz.visible = false;
-                    attviz.opacity = 0.0;
-                    //attObj.attackerVisual.destroy();
-                    //attviz.destroy();
-                    //game.board.removeAttacker(attObj);
 
-                    //  init_attackers();
+                    // game.board.correctPaths();
+
+                    //}
+
 
                 }
-
-
-
-                // game.board.correctPaths();
-
-                //}
-
-
             }
             if (curAttackerArrayStop >= game.board.attackers.length) {
                 curAttackerArrayStart = 0;
@@ -369,41 +392,138 @@ Window {
             }
 
 
-
+            timerAttackers.start();
         }
 
     }
 
     Timer {
         id:timerProjectiles;
-        interval: 10; running: true; repeat: true
+        interval: 60; running: true; repeat: true
         onTriggered: function() {
-
+            timerProjectiles.stop();
 
             if (curProjectileArrayStop > projectileHash.length) {
                 curProjectileArrayStop = projectileHash.length;
             }
 
+            var attackerObjects = [];
+
+            var bgch = background.children;
+            for (var c=0; c<bgch.length; c++) {
+                var obj = bgch[c];
+                if (qmltypeof(obj, "AttackerVisual")) {
+                    attackerObjects.push(obj);
+                }
+            }
 
             for (var p=curProjectileArrayStart; p<curProjectileArrayStop; p++) {
                 var proObj = projectileHash[p];
                 if (proObj != null) {
-                    proObj.x += proObj.ctx;
-                    proObj.y += proObj.cty;
+                    if (proObj.finito == true) {
+                        // proObj.x += proObj.ctx;
+                        //proObj.y += proObj.cty;
+                        var myx = proObj.target_x;
+                        var myy = proObj.target_y;
+                        var hit_attacker = false;
 
-                    var TL = truelength(proObj.origin_x, proObj.origin_y, proObj.x, proObj.y);
-                    // var TL = Math.abs(proObj.x - proObj.origin_x) + Math.abs(proObj.y - proObj.origin_y);
-                    if (TL > proObj.max_dist) {
-                        projectileHash[p].destroy();
-                        projectileHash[p] = null;
+
+                       // var bgch = background.children;
+                        for (var c=0; c<attackerObjects.length; c++) {
+                            var obj = attackerObjects[c];
+                            if (qmltypeof(obj, "AttackerVisual")) {
+                                var apos = background.mapToItem(obj, myx, myy)
+                                var xpos = apos.x;
+                                var ypos = apos.y;
+                                if ((xpos >= 0) && (xpos <= obj.width)) {
+                                    if ((ypos >= 0) && (ypos <= obj.height)) {
+                                        obj.attacker.health = obj.attacker.health - proObj.max_damage;
+                                        if (obj.attacker.health < 1) {
+                                            obj.attacker.target.squareVisual.isActiveTarget = false;
+                                            var attObj = obj.attacker;
+                                            obj.destroy();
+                                            game.board.removeAttacker(attObj);
+
+                                        }
+                                        hit_attacker = true;
+                                        c = bgch.length;
+                                    }
+
+                                }
+
+                            }
+                        }
+
+
+
+                        /*
+                    for (var b=0; b<proObj.possibleHitSquares.length; b++) {
+                        if (hit_attacker == false) {
+                            var sqObj = proObj.possibleHitSquares[b];
+                            var xpos = background.mapToItem(sqObj.squareVisual, myx, myy).x;
+                            var ypos = background.mapToItem(sqObj.squareVisual, myx, myy).y;
+                            if ((xpos >= 0) && (xpos <= sqObj.squareVisual.width)) {
+                                if ((ypos >= 0) && (ypos <= sqObj.squareVisual.height)) {
+                                    if (sqObj.squareVisual.isActiveTarget) {
+                                        for (var r=0; r<game.board.attackers.length; r++) {
+                                            var attObj = game.board.attackers[r];
+                                            //var attviz = attObj.attackerVisual;
+                                            if (attObj.target == sqObj) {
+                                                attObj.health = attObj.health - proObj.max_damage;
+                                                if (attObj.health < 1) {
+                                                    sqObj.squareVisual.isActiveTarget = false;
+                                                    attObj.attackerVisual.destroy();
+                                                    game.board.removeAttacker(attObj);
+
+
+                                                    for (var g=0; g<sqObj.squareVisual.gunsInRange.length; g++) {
+                                                        var tmp_gun = sqObj.squareVisual.gunsInRange[g];
+                                                        if (tmp_gun != null) {
+                                                            if (tmp_gun.gunVisual != null) {
+                                                                tmp_gun.gunVisual.find_target();
+                                                            }
+                                                        }
+                                                    }
+
+
+                                                }
+                                                hit_attacker = true;
+                                                r = game.board.attackers.length;
+                                                //break;
+
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (hit_attacker == true) {
+                                //break;
+                            }
+                        } else {
+                            b = proObj.possibleHitSquares.length;
+                        }
+                    } */
+                      //  var TL = truelength(proObj.origin_x, proObj.origin_y, proObj.x, proObj.y);
+                        // var TL = Math.abs(proObj.x - proObj.origin_x) + Math.abs(proObj.y - proObj.origin_y);
+                        //if ((TL >= proObj.max_dist) || (hit_attacker == true)) {
+                        if ((hit_attacker == true) || (proObj.finito == true)) {
+                            projectileHash[p].destroy();
+                            projectileHash[p] = null;
+
+                        }
+                } else {
+                       // projectileHash[p].destroy();
+                       // projectileHash[p] = null;
 
                     }
+
                 } else {
-                    curAttackerArrayStop++;
+                    curProjectileArrayStop++;
                     if (curProjectileArrayStop > projectileHash.length) {
                         curProjectileArrayStop = projectileHash.length;
                     }
                 }
+
             }
 
             if (curProjectileArrayStop >= projectileHash.length) {
@@ -415,7 +535,7 @@ Window {
                 curProjectileArrayStop += numProjectilesPerFrame;
             }
 
-
+            timerProjectiles.start();
         }
     }
 
@@ -430,37 +550,96 @@ Window {
         var tl = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
         return tl;
     }
+
+
+
     Timer {
         id: timerSpawn;
-        interval: 15000; running:false; repeat: true;
+        interval: 12000; running:false; repeat: true;
         onTriggered: function() {
-
+            timerSpawn.stop();
+            enemyCount = 0;
             clear_type_from_board("ProjectileVisual");
             for (var i=0; i<1000; i++) { projectileHash[i] = null; }
-            game.board.placeAttacker(1,1,1, 6);
-            //init_attackers();
-            if (enemyCount == 0) { init_attackers(); } else {
 
-                create_atttacker(game.board.lastSpawnedAttacker);
-            }
-            enemyCount++;
+            timerCreateEnemy.start();
 
 
 
         }
     }
-    property int rotO: 0;
+    Timer {
+        id: timerCreateEnemy;
+        interval: 2000;
+        running: false;
+        repeat: true;
+        onTriggered: {
+
+
+
+            //  var coefficient = Math.round(game.level * 0.2);
+            game.board.placeAttacker(1,1,1, 9);
+            enemyCount++;
+            //init_attackers();
+            if (enemyCount == 0) { init_attackers(); } else {
+                game.board.lastSpawnedAttacker.health = 100  * game.level;
+                create_atttacker(game.board.lastSpawnedAttacker);
+
+                //game.board.lastSpawnedAttacker.attackerVisual.anim1.running = true;
+                //game.board.lastSpawnedAttacker.attackerVisual.anim2.running = true;
+
+            }
+
+            if (enemyCount > numEnemiesPerWave) {
+                game.level = game.level + 1;
+                console.log("Game level is now " + game.level);
+                timerCreateEnemy.stop();
+                timerSpawn.start();
+            }
+        }
+    }
+
+    property int rotO: -1;
+    property int stopO: 0;
     Timer {
         id: timerRotateGuns;
-        interval: 360;
+        interval: 50;
         running: true;
         repeat: true;
 
         onTriggered: function() {
-            if (rotO == 0) { init_squares(); rotO = 1; }
+            if (rotO == -1) { init_squares(); init_guns(); rotO = 0; stopO = rotO + 6; }
+            if (stopO > game.board.guns.length) { stopO = game.board.guns.length; }
+            timerRotateGuns.stop();
+            for (var t=rotO; t<stopO; t++) {
+                //var activeguns = [];
+                //  for (var a=0; a<game.board.attackers.length; a++) {
+                //    var attObj = game.board.attackers[a];
+                //   var attTarget = attObj.target;
+                // for (var u=0; u<attObj.target.squareVisual.gunsInRange.length; u++) {
 
-            for (var t=0; t<game.board.guns.length; t++) {
+                /* for (var u=0; u<game.board.squares.length; u++) {
+                var sqViz = game.board.squares[u].squareVisual;
+                if (sqViz.isActiveTarget) {
+                    for (var g=0; g<game.board.guns.length; g++) {
+                        var tmpGun = game.board.guns[g];
+                        if (tmpGun.gunVisual.availableTargetSquares.indexOf(game.board.squares[u]) > -1) {
+                            activeguns.push(tmpGun);
+                        }
+                    }
+                }
 
+
+
+
+
+            } */
+                //
+                //            }
+
+                //          }
+
+                //  for (var t=0; t<activeguns.length; t++) {
                 var gunP = game.board.guns[t];
                 var gunObj = gunP.gunVisual;
 
@@ -483,7 +662,7 @@ Window {
 
 
                 } */
-                for (var a=0; a<gunObj.availableTargetSquares.length; a++) {
+                /* for (var a=0; a<gunObj.availableTargetSquares.length; a++) {
                     var tmp_sq = gunObj.availableTargetSquares[a];
                     if (tmp_sq.squareVisual.isActiveTarget == true) {
                         var sqx = tmp_sq.squareVisual.x;
@@ -495,24 +674,39 @@ Window {
                         }
                     }
 
-                }
+                } */
 
-                if (closest_dist <= gunP.rangeLowAccuracy) {
-                    var tmpAngle = angleTo(gunx, guny, closest_sq.squareVisual.x, closest_sq.squareVisual.y);
+                // if (closest_dist <= gunP.rangeLowAccuracy) {
+                /*          var tmpAngle = angleTo(gunx, guny, closest_sq.squareVisual.x, closest_sq.squareVisual.y);
                     if (gunObj.rotation != tmpAngle) {
                         gunObj.rotation = tmpAngle;
+                    }
+                    */
 
-                        if (gunObj.next_fire < Date.now()) {
-                            create_projectile(gunP, closest_sq.squareVisual.x, closest_sq.squareVisual.y);
+                if (gunObj.next_fire < Date.now()) {
+                    if (gunObj.closest_sq != null) {
+                        if (gunObj.closest_sq.squareVisual.isActiveTarget == true) {
+                            create_projectile(gunP, gunObj.closest_sq.squareVisual.x + (gunObj.width * 0.5), gunObj.closest_sq.squareVisual.y + (gunObj.height * 0.5));
 
-                            gunObj.next_fire = parseInt(Date.now() + 1000);
+                            gunObj.next_fire = parseInt(Date.now() + 300);
                         }
                     }
                 }
+                // }
+
 
             }
+            if (stopO == game.board.guns.length) {
+                rotO = 0;
+                stopO = 6;
+            } else {
+                rotO = stopO;
+                stopO = rotO + 6;
+            }
 
+            timerRotateGuns.start();
         }
+
     }
 
     MouseArea {
@@ -536,32 +730,38 @@ Window {
                                 game.board.placeGun(obj.square.row, obj.square.col, 1);
 
                                 var shRoute = get_shortest_path(0,0, game.board.colCount - 1, game.board.rowCount - 1);
-                                game.board.clear_path_data();
-
-                                var q = 0;
-                                while (shRoute[q] != null) {
-                                    game.board.add_path_data(parseInt(shRoute[q][0]),parseInt(shRoute[q][1]));
-                                    q++;
-                                    //console.log(nd);
-                                }
-                                if (q == 0) {
-                                    game.board.placeSquare(mRow, mCol);
-
-                                    shRoute = get_shortest_path(0,0, game.board.colCount - 1, game.board.rowCount - 1);
+                                if (shRoute[2] != null) {
                                     game.board.clear_path_data();
-
+                                    console.log(shRoute.length + " - " + shRoute);
                                     var q = 0;
                                     while (shRoute[q] != null) {
                                         game.board.add_path_data(parseInt(shRoute[q][0]),parseInt(shRoute[q][1]));
                                         q++;
                                         //console.log(nd);
                                     }
+                                    create_gun(obj.square.row, obj.square.col);
+                                } else {
+
+                                    //game.board.placeSquare(mRow, mCol);
+
+                                    game.board.removeGun(obj.square.row, obj.square.col);
+                                    shRoute = get_shortest_path(0,0, game.board.colCount - 1, game.board.rowCount - 1);
+                                    if (shRoute[2] != null) {
+                                        game.board.clear_path_data();
+
+                                        q = 0;
+                                        while (shRoute[q] != null) {
+                                            game.board.add_path_data(parseInt(shRoute[q][0]),parseInt(shRoute[q][1]));
+                                            q++;
+                                            //console.log(nd);
+                                        }
+                                    }
                                 }
                                 timerSpawn.running = true;
 
-                                update_squares();
-                                create_gun(obj.square.row, obj.square.col);
-                               //init_guns();
+                                // update_squares();
+
+                                //init_guns();
                                 //init_attackers();
                                 //game.board.correctPaths();
 

@@ -97,6 +97,7 @@ public slots:
 
     void correctPaths();
 void removeAttacker(Attacker *att);
+void removeGun(int row, int col);
     void populate_dead_ends();
 
 

@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.5
 import com.towerdefense.fullcommand 2.0
 
 
@@ -14,7 +14,10 @@ Item {
     property var splash_distance;
     property var max_damage;
     property var min_damage;
-
+    property var target_x;
+    property var target_y;
+    property bool finito: false;
+    id: proj
 
 
   /*  Rectangle {
@@ -30,6 +33,21 @@ Item {
 
 
     } */
+     property var possibleHitSquares: new Array
+
+
+
+    ParallelAnimation {
+           running: true;
+           id: anim1
+           NumberAnimation {  target: proj; property: "x"; from: origin_x; to:  target_x; duration: 150 }
+           NumberAnimation {  target: proj; property: "y"; from: origin_y; to: target_y; duration: 150 }
+           onStopped: {
+             finito = true;
+           }
+       }
+
+
     Image {
         source: "./images/projectiles/" + projectile_type + ".png"
         anchors.centerIn: parent

@@ -12,7 +12,7 @@
 
 Game::Game(QObject *parent, QQmlContext *i_context) : QObject(parent), m_context(i_context)
 {
-
+    m_level = QVariant::fromValue(1);
 }
 void Game::createBoard() {
     this->m_map = new Map(this);

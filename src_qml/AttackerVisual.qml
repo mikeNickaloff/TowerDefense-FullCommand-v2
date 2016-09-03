@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.5
 import com.towerdefense.fullcommand 2.0
 
 
@@ -11,6 +11,7 @@ Item {
         height: parent.height
 
     }
+    id: viz
    property var startX
     property var startY
     property var endX
@@ -20,7 +21,31 @@ Item {
     property var ecdx;
     property var ecdy;
 
+
+  /* PropertyAnimation { id: xanim; target: viz; property: "x"; easing.period: 0.25; easing.amplitude: 0.15; easing.type: Easing.OutElastic; duration: 950;  to: endX; duration: 30 * (attacker.target.squareVisual.width / attacker.speed) }
+
+
+   PropertyAnimation { id: yanim; target: viz; property: "y"; to: endY; duration: 30 * (attacker.target.squareVisual.width / attacker.speed) } (
+*/
+
+    ParallelAnimation {
+           running: false;
+           id: anim1
+           NumberAnimation {  target: viz; property: "x"; to:  endX; duration: 1000 }
+           NumberAnimation {  target: viz; property: "y"; to: endY; duration: 1000 }
+           onStopped: {
+               attacker.next_target();
+               waiting_for_waypoint = true;
+           }
+       }
+    function startAnim() {
+        if (!anim1.running) {
+            anim1.restart();
+        }
+    }
+
     function step() {
+
 
 
 
@@ -29,6 +54,10 @@ Item {
         y += ecdy;
         attacker.xpos = x;
         attacker.ypos = y;
+        //xanim.to = endX;
+        //yanim.to = endY;
+        //if (xanim.running == false) { xanim.start(); }
+        //if (yanim.running == false) { yanim.start(); }
          //  x += (ecdx * Math.abs(attacker.target.col - attacker.current.col));
           // y += (ecdy * Math.abs(attacker.target.row - attacker.current.row));
            var newTL = truelength(x, y, endX, endY);

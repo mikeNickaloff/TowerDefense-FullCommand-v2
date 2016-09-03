@@ -20,6 +20,8 @@
 #include "src_elements/gun.h"
 #include "src_elements/attacker.h"
 #include "src_elements/projectile.h"
+#include "src_ui/towerchooser.h"
+#include "src_ui/towerinfo.h"
 
 int main(int argc, char *argv[])
 {
@@ -34,6 +36,8 @@ int main(int argc, char *argv[])
     qmlRegisterType<Gun>("com.towerdefense.fullcommand", 2, 0, "Gun");
     qmlRegisterType<Attacker>("com.towerdefense.fullcommand", 2, 0, "Attacker");
     qmlRegisterType<Projectile>("com.towerdefense.fullcommand", 2, 0, "Projectile");
+    qmlRegisterType<TowerChooser>("com.towerdefense.fullcommand", 2, 0, "TowerChooser");
+    qmlRegisterType<TowerInfo>("com.towerdefense.fullcommand", 2, 0, "TowerInfo");
    // Game* m_game = new Game(0, engine.rootContext());
 
   //  engine.rootContext()->setContextProperty("game", m_game);

@@ -30,5 +30,6 @@
         <file>src_js/finders/JPFNeverMoveDiagonally.js</file>
         <file>src_js/finders/JumpPointFinder.js</file>
         <file>src_js/finders/JumpPointFinderBase.js</file>
+        <file>src_qml/TowerChooserVisual.qml</file>
     </qresource>
 </RCC>

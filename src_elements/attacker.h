@@ -15,8 +15,10 @@ class Attacker : public QQuickItem
     Q_PROPERTY(QVariant target MEMBER m_target NOTIFY targetChanged)
     Q_PROPERTY(QVariant xpos MEMBER m_xpos NOTIFY xposChanged)
     Q_PROPERTY(QVariant ypos MEMBER m_ypos NOTIFY yposChanged)
+    Q_PROPERTY(QVariant health MEMBER m_health NOTIFY healthChanged)
     Q_PROPERTY(QObject* attackerVisual MEMBER m_attackerVisual NOTIFY attackerVisualChanged)
     Q_PROPERTY(bool atEndOfPath READ isAtEndOfPath)
+    Q_PROPERTY(QVariant distanceToEnd READ m_path_count)
 
 public:
     explicit Attacker(QObject *parent = 0);
@@ -40,6 +42,8 @@ public:
         if (m_path.count() < 2) { return true; }
         return false;
     }
+    QVariant m_health;
+    QVariant m_path_count() { return m_path.count(); }
 
 signals:
     void speedChanged(QVariant newSpeed);
@@ -49,6 +53,7 @@ signals:
     void xposChanged(QVariant newVal);
     void yposChanged(QVariant newVal);
     void attackerVisualChanged(QObject* newObj);
+    void healthChanged(QVariant newVal);
 public slots:
     void next_target();
 
