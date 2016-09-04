@@ -23,8 +23,6 @@ Window {
             game.createBoard();
             init_squares();
 
-
-
         }
         property var grid;
         property var finder;
