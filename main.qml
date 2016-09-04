@@ -70,8 +70,6 @@ Window {
     function update_squares() {
         var tmp_sq = game.board.squares;
 
-
-
         for (var u=0; u<tmp_sq.length; u++) {
 
             var squ = tmp_sq[u];
