@@ -20,10 +20,12 @@ class Board : public QObject
     Q_PROPERTY(QVariantList squares READ readSquares WRITE setSquares NOTIFY squaresChanged)
     Q_PROPERTY(QVariantList guns READ readGuns NOTIFY gunsChanged)
     Q_PROPERTY(QVariantList attackers READ readAttackers NOTIFY attackersChanged)
+    Q_PROPERTY(QVariant needBestPathUpdate MEMBER m_needBestPathUpdate NOTIFY needBestPathUpdateChanged)
     Q_OBJECT
     Q_PROPERTY(int rowCount MEMBER m_rowCount NOTIFY rowCountChanged)
     Q_PROPERTY(int colCount MEMBER m_colCount NOTIFY colCountChanged)
     Q_PROPERTY(QObject* lastSpawnedAttacker MEMBER m_lastSpawnedAttacker NOTIFY lastSpawnedAttackerChanged)
+    Q_PROPERTY(QVariant lastGunPlacementValid MEMBER m_lastGunPlacementValid NOTIFY lastGunPlacementValidChanged)
 public:
     explicit Board(QObject *parent = 0, Game* i_game = 0);
     Game* m_game;
@@ -65,6 +67,8 @@ QList<Square*> m_best_path;
     QObject* m_lastSpawnedAttacker;
 
 
+   QVariant m_needBestPathUpdate;
+   QVariant m_lastGunPlacementValid;
 signals:
     void testArgChanged(int newArg);
     void squaresChanged(QVariantList newMap);
@@ -74,6 +78,8 @@ signals:
     void colCountChanged(int newCount);
     void attackersChanged(QVariantList newList);
     void lastSpawnedAttackerChanged(QObject* newLast);
+    void needBestPathUpdateChanged(QVariant newVal);
+    lastGunPlacementValidChanged(QVariant newVal);
 public slots:
     void add_path_data(QVariant c1, QVariant r1);
     void clear_path_data() { m_best_path.clear(); }

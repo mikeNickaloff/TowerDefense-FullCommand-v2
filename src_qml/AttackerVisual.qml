@@ -22,62 +22,40 @@ Item {
     property var ecdy;
 
 
-  /* PropertyAnimation { id: xanim; target: viz; property: "x"; easing.period: 0.25; easing.amplitude: 0.15; easing.type: Easing.OutElastic; duration: 950;  to: endX; duration: 30 * (attacker.target.squareVisual.width / attacker.speed) }
 
 
-   PropertyAnimation { id: yanim; target: viz; property: "y"; to: endY; duration: 30 * (attacker.target.squareVisual.width / attacker.speed) } (
-*/
 
     ParallelAnimation {
-           running: false;
+           running: true;
            id: anim1
            NumberAnimation {  target: viz; property: "x"; to:  endX; duration: 1000 }
            NumberAnimation {  target: viz; property: "y"; to: endY; duration: 1000 }
            onStopped: {
+
                attacker.next_target();
-               waiting_for_waypoint = true;
+               attacker.target.squareVisual.isActiveTarget = true;
+               attacker.current.squareVisual.isActiveTarget = false;
+
+               if (attacker.speed > 0) {
+                   startX = endX;
+                   startY = endY;
+                   endX = attacker.target.squareVisual.x
+                   endY = attacker.target.squareVisual.y
+                   attacker.target.squareVisual.distanceToEnd = attacker.distanceToEnd;
+                   startAnim();
+               } else {
+                   attackerPathFinished(attacker);
+               }
            }
        }
+    signal attackerPathFinished(var attackerObject);
     function startAnim() {
         if (!anim1.running) {
             anim1.restart();
         }
     }
 
-    function step() {
 
-
-
-
-        var oldTL = truelength(x, y, endX, endY);
-             x += ecdx;
-        y += ecdy;
-        attacker.xpos = x;
-        attacker.ypos = y;
-        //xanim.to = endX;
-        //yanim.to = endY;
-        //if (xanim.running == false) { xanim.start(); }
-        //if (yanim.running == false) { yanim.start(); }
-         //  x += (ecdx * Math.abs(attacker.target.col - attacker.current.col));
-          // y += (ecdy * Math.abs(attacker.target.row - attacker.current.row));
-           var newTL = truelength(x, y, endX, endY);
-
-        if (newTL > oldTL) {
-              x = endX;
-
-              y = endY;
-            attacker.xpos = x;
-            attacker.ypos = y;
-              attacker.next_target();
-              waiting_for_waypoint = true;
-            if (attacker.atEndOfPath) {
-
-            }
-          }
-
-
-
-    }
 
     function truelength(x1, y1, x2, y2) {
         var tl = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));

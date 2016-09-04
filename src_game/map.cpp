@@ -19,8 +19,8 @@ void Map::create_blank_map() {
             bool placed = false;
             if ((i == 0) || (j == 0) || (i == (rowCount - 1)) || (j == (colCount - 1))) {
 
-                if ((i == 0) && (j == 0)) { emit this->placeStart(i,j); placed = true; }
-                if ((i == (rowCount - 1)) && (j == (colCount - 1))) { emit this->placeEnd(i,j); placed = true; }
+                if ((i == 0) && (j == qRound(colCount * 0.5))) { emit this->placeStart(i,j); placed = true; }
+                if ((i == (rowCount - 1)) && (j == qRound(rowCount * 0.5))) { emit this->placeEnd(i,j); placed = true; }
                if (!placed) {
                    emit this->placeWall(i,j);
                }

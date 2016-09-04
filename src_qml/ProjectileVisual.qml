@@ -35,18 +35,24 @@ Item {
     } */
      property var possibleHitSquares: new Array
 
-
+    signal arrivedAtTarget(var i_target_x, var i_target_y, var i_min_damage, var i_max_damage, var i_splash_distance);
 
     ParallelAnimation {
-           running: true;
+           running: false;
            id: anim1
-           NumberAnimation {  target: proj; property: "x"; from: origin_x; to:  target_x; duration: 150 }
-           NumberAnimation {  target: proj; property: "y"; from: origin_y; to: target_y; duration: 150 }
+           NumberAnimation {  target: proj; property: "x"; from: origin_x; to:  target_x; duration: 200 }
+           NumberAnimation {  target: proj; property: "y"; from: origin_y; to: target_y; duration: 200 }
            onStopped: {
              finito = true;
+             arrivedAtTarget(target_x, target_y, min_damage, max_damage, splash_distance);
            }
        }
-
+    function startAnim() {
+        if (!anim1.running) {
+            finito = false;
+            anim1.restart();
+        }
+    }
 
     Image {
         source: "./images/projectiles/" + projectile_type + ".png"

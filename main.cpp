@@ -38,20 +38,9 @@ int main(int argc, char *argv[])
     qmlRegisterType<Projectile>("com.towerdefense.fullcommand", 2, 0, "Projectile");
     qmlRegisterType<TowerChooser>("com.towerdefense.fullcommand", 2, 0, "TowerChooser");
     qmlRegisterType<TowerInfo>("com.towerdefense.fullcommand", 2, 0, "TowerInfo");
-   // Game* m_game = new Game(0, engine.rootContext());
-
-  //  engine.rootContext()->setContextProperty("game", m_game);
-    //m_game->createBoard();
-   // engine.rootContext()->setContextProperty("gameboard", m_game->m_board);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
-//    QtQuickControlsApplication app(argc, argv);
-
-        //QQmlApplicationEngine engine(QUrl("qrc:/qml/main.qml"));
-        //if (engine.rootObjects().isEmpty())
-         //   return -1;
-        //return app.exec();
 
     return app.exec();
 }
