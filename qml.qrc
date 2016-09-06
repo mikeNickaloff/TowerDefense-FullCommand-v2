@@ -31,5 +31,6 @@
         <file>src_js/finders/JumpPointFinder.js</file>
         <file>src_js/finders/JumpPointFinderBase.js</file>
         <file>src_qml/TowerChooserVisual.qml</file>
+        <file>src_qml/images/particles/particle2.png</file>
     </qresource>
 </RCC>

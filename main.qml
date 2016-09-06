@@ -1,6 +1,7 @@
 import QtQuick 2.6
 import QtQuick.Window 2.2
 import com.towerdefense.fullcommand 2.0
+import QtQuick.Particles 2.0
 import "src_js/logic.js" as Logic
 Window {
     visible: true
@@ -12,6 +13,16 @@ Window {
         width: 640
         height: 640
         anchors.fill: parent
+
+
+
+
+
+
+
+
+
+
 
     }
 
@@ -33,11 +44,20 @@ Window {
     }
 
 
+    property int numFireGroups:  10;
     property var squareHash: new Array(10);
     property var squareObjHash : new Array(10);
     property var gunHash: new Array(10);
     property var attackerHash: new Array(10);
 
+
+    function get_fire_group(row, col) {
+
+        var tmp = row + numFireGroups;
+        tmp += (col * 3);
+        var rv = (tmp % numFireGroups);
+        return rv;
+    }
 
     function clear_type_from_board(type_to_erase) {
         var bgch = background.children;
@@ -116,6 +136,7 @@ Window {
 
     }
 
+    signal fire_weapons(var i_fire_group);
     function create_gun(row, col) {
         var component;
         component = Qt.createComponent("src_qml/GunVisual.qml");
@@ -124,7 +145,7 @@ Window {
             var gu = tmp_gu[u];
             if ((gu.row == row) && (gu.col == col)) {
                 if (component.status == Component.Ready) {
-                    var dynamicObject = component.createObject(background, { "gun" : gu });
+                    var dynamicObject = component.createObject(background, { "gun" : gu, "game" : game, "fireGroup" : get_fire_group(row, col) });
                     dynamicObject.width = (background.width / game.board.colCount);
                     dynamicObject.height = (background.height / game.board.rowCount);
                     dynamicObject.x = (background.width / game.board.colCount) * gu.col;
@@ -137,6 +158,7 @@ Window {
                     var min_sq_row = squ.row - Math.round(gu.rangeLowAccuracy / sqvis.height) - 1;
                     var max_sq_col = squ.col + Math.round(gu.rangeLowAccuracy / sqvis.width) + 1;
                     var max_sq_row = squ.row + Math.round(gu.rangeLowAccuracy / sqvis.width) + 1;
+                    fire_weapons.connect(gu.gunVisual.receive_fire_order);
                     for (var w=0; w<game.board.squares.length; w++) {
 
                         var sqObj = game.board.squares[w];
@@ -153,7 +175,10 @@ Window {
                                 if (TL < gu.rangeLowAccuracy) {
                                     gu.gunVisual.availableTargetSquares.push(sqObj);
                                     sqEl.gunsInRange.push(gu);
-                                    sqEl.isActiveTargetChanged.connect(gu.gunVisual.find_target);
+                                    //sqEl.isActiveTargetChanged.connect(gu.gunVisual.find_target);
+                                    sqEl.becameActiveTarget.connect(gu.gunVisual.check_new_target);
+                                    sqEl.lostActiveTarget.connect(gu.gunVisual.lost_active_target);
+
                                 }
                             }
                         }
@@ -223,7 +248,7 @@ Window {
 
 
 
-            var dynamicObject = component.createObject(background, { "attacker" : squ, "startX" : getX(squ.current.col), "x" : getX(squ.current.col), "y" : getY(squ.current.row),  "startY" : getY(squ.current.row), "endX" : getX(squ.target.col), "endY" : getY(squ.target.row), "speed" : squ.speed,  "ecdx" : 0, "ecdy" : 0 });
+            var dynamicObject = component.createObject(background, { "attacker" : squ, "startX" : getX(squ.current.col), "x" : getX(squ.current.col), "y" : getY(squ.current.row),  "startY" : getY(squ.current.row), "endX" : getX(squ.target.col), "endY" : getY(squ.target.row), "speed" : squ.speed,  "ecdx" : 0, "ecdy" : 0, "game" : game });
             dynamicObject.width = (background.width / game.board.colCount);
             dynamicObject.height = (background.height / game.board.rowCount);
 
@@ -287,20 +312,29 @@ Window {
         for (var c=0; c<attackerObjects.length; c++) {
             var obj = attackerObjects[c].attackerVisual;
 
-            var apos = background.mapToItem(obj, myx, myy)
-            var xpos = apos.x;
-            var ypos = apos.y;
+            //var apos = background.mapToItem(obj, myx, myy)
+            //var xpos = apos.x;
+            //var ypos = apos.y;
+            var xpos = Math.abs(obj.x - myx);
+            var ypos = Math.abs(obj.y - myy);
             if ((xpos >= 0) && (xpos <= obj.width)) {
                 if ((ypos >= 0) && (ypos <= obj.height)) {
+
+
+
                     obj.attacker.health = obj.attacker.health - i_max_damage;
                     if (obj.attacker.health < 1) {
                         obj.attacker.current.squareVisual.isActiveTarget = false;
                         obj.attacker.target.squareVisual.isActiveTarget = false;
                         var attObj = obj.attacker;
+                        particleOverlay.customEmit(myx, myy);
                         obj.destroy();
                         game.board.removeAttacker(attObj);
 
                     }
+
+
+                       // particleOverlay.customEmit(myx, myy);
 
                     c = attackerObjects.length;
                 }
@@ -326,8 +360,8 @@ Window {
     }
     property int enemyCount: 0;
     property int waveCount: 0;
-    property int numEnemiesPerWave: 10
-    property int numWavesPerLevel: 5
+    property int numEnemiesPerWave: 6
+    property int numWavesPerLevel: 3
     property int curAttackerArrayStart: 0
     property int curAttackerArrayStop : 50
     property int numAttackersPerFrame: 50
@@ -354,7 +388,7 @@ Window {
 
     Timer {
         id: timerSpawn;
-        interval: 12000; running:false; repeat: true;
+        interval: 10000; running:false; repeat: true;
         onTriggered: function() {
             timerSpawn.stop();
             enemyCount = 0;
@@ -367,7 +401,7 @@ Window {
     }
     Timer {
         id: timerCreateEnemy;
-        interval: 1800;
+        interval: 1000;
         running: false;
         repeat: true;
         onTriggered: {
@@ -375,11 +409,11 @@ Window {
 
 
 
-            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),1, 9);
+            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),1, 3 + enemyCount + waveCount);
             enemyCount++;
 
             if (enemyCount == 0) { init_attackers(); } else {
-                game.board.lastSpawnedAttacker.health = 30  * game.level;
+                game.board.lastSpawnedAttacker.health = (30  + (enemyCount * 10) + (waveCount * 20)) * game.level;
                 create_atttacker(game.board.lastSpawnedAttacker);
 
 
@@ -401,13 +435,17 @@ Window {
     property int stopO: 0;
     Timer {
         id: timerRotateGuns;
-        interval: 75;
+        interval: 60
         running: true;
         repeat: true;
 
         onTriggered: function() {
-            if (rotO == -1) { init_squares(); init_guns(); rotO = 0; stopO = rotO + 36; }
-            if (stopO > game.board.guns.length) { stopO = game.board.guns.length; }
+            if (rotO == -1) { init_squares(); init_guns(); rotO = 0; stopO = rotO + 12; }
+            if (rotO > numFireGroups) { rotO = 0; stopO = 1; }
+            fire_weapons(rotO);
+            rotO++;
+            stopO++;
+            /* if (stopO > game.board.guns.length) { stopO = game.board.guns.length; }
 
             for (var t=rotO; t<stopO; t++) {
 
@@ -425,7 +463,7 @@ Window {
                             //create_projectile(gunP, gunObj.closest_sq.squareVisual.x + (gunObj.width * 0.5), gunObj.closest_sq.squareVisual.y + (gunObj.height * 0.5));
                             gunObj.fire_projectile(gunObj.closest_sq.squareVisual.x + (gunObj.width * 0.5), gunObj.closest_sq.squareVisual.y + (gunObj.height * 0.5));
 
-                            gunObj.next_fire = parseInt(Date.now() + 300);
+                            gunObj.next_fire = parseInt(Date.now() + 850 + (Math.random() * 500));
                         }
                     }
                 }
@@ -435,11 +473,11 @@ Window {
             }
             if (stopO == game.board.guns.length) {
                 rotO = 0;
-                stopO = 36;
+                stopO = 12;
             } else {
                 rotO = stopO;
-                stopO = rotO + 36;
-            }
+                stopO = rotO + 12;
+            }*/
 
             //timerRotateGuns.start();
         }
@@ -502,6 +540,10 @@ Window {
                                     if (game.board.lastGunPlacementValid == true) {
 
                                         create_gun(obj.square.row, obj.square.col);
+                                    } else {
+                                     // display  TowerUpgradeMenu
+
+
                                     }
                                 }
 
@@ -526,5 +568,85 @@ Window {
             text: qsTr("Click on the grid to build towers")
             anchors.centerIn: parent
         }
+    }
+    Item {
+        id: particleOverlay
+        width: background.width;
+        height: background.height;
+        anchors.fill: parent
+
+        ParticleSystem {
+            id: sys
+        }
+        ImageParticle {
+            system: sys
+            source: "./src_qml/images/particles/particle2.png"
+            color: "yellow"
+            colorVariation: 0.3
+            alpha: 0.1
+        }
+
+        Component {
+            id: emitterComp
+            Emitter {
+                id: container
+                Emitter {
+                    id: emitMore
+                    system: sys
+                    emitRate: 16
+                    lifeSpan: 100
+                    size: 13
+                    endSize: 8
+                    velocity: AngleDirection {angleVariation:360; magnitude: 30}
+                }
+
+                property int life: 200
+                property real targetX: 0
+                property real targetY: 0
+                function go() {
+                    xAnim.start();
+                    yAnim.start();
+                    container.enabled = true
+                }
+                system: sys
+                emitRate: 64
+                lifeSpan: 300
+                size: 24
+                endSize: 2
+                NumberAnimation on x {
+                    id: xAnim;
+                    to: targetX
+                    duration: life
+                    running: false
+                }
+                NumberAnimation on y {
+                    id: yAnim;
+                    to: targetY
+                    duration: life
+                    running: false
+                }
+                Timer {
+                    interval: life
+                    running: true
+                    onTriggered: container.destroy();
+                }
+            }
+        }
+
+        function customEmit(x,y) {
+            //! [0]
+            for (var i=0; i<5; i++) {
+                var obj = emitterComp.createObject(particleOverlay);
+                obj.x = x
+                obj.y = y
+                obj.targetX = Math.random() * 24 - 12 + obj.x
+                obj.targetY = Math.random() * 24 - 12 + obj.y
+                obj.life = Math.round(Math.random() * 24) + 200
+                obj.emitRate = Math.round(Math.random() * 32) + 32
+                obj.go();
+            }
+            //! [0]
+        }
+
     }
 }

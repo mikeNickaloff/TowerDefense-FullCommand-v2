@@ -7,7 +7,7 @@
 #include <QQmlEngine>
 #include <QVariant>
 class Gun;
-class Square :  public QQuickItem
+class Square :  public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int row MEMBER m_row NOTIFY rowChanged)

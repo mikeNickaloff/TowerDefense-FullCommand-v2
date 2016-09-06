@@ -5,7 +5,7 @@ function get_shortest_path(col_1, row_1, col_2, row_2) {
     var grid = new Grid(game.board.colCount, game.board.rowCount);
 
 
-    var finder = new AStarFinder({ allowDiagonal: false, dontCrossCorners: false });
+    var finder = new AStarFinder({ allowDiagonal: false, dontCrossCorners: true });
 
 
     var tmp_sq = game.board.squares;

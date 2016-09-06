@@ -95,8 +95,8 @@ void Board::placeGun(int row, int col, int gunType) {
 
         bool valid_placement = true;
 
-         QPair<int, int> pair = qMakePair(row, col);
-         if (m_guns.contains(pair)) { valid_placement = false; this->m_lastGunPlacementValid = QVariant::fromValue(false); this->m_needBestPathUpdate = QVariant::fromValue(false); }
+        QPair<int, int> pair = qMakePair(row, col);
+        if (m_guns.contains(pair)) { valid_placement = false; this->m_lastGunPlacementValid = QVariant::fromValue(false); this->m_needBestPathUpdate = QVariant::fromValue(false); }
         if (valid_placement) {
 
 
@@ -129,7 +129,7 @@ void Board::placeGun(int row, int col, int gunType) {
 
         }
     } else {
-       this->m_lastGunPlacementValid = QVariant::fromValue(false);
+        this->m_lastGunPlacementValid = QVariant::fromValue(false);
         this->m_needBestPathUpdate = QVariant::fromValue(false);
     }
 }
@@ -335,6 +335,49 @@ void Board::populate_dead_ends() {
 
 
 
+}
+
+QVariant Board::check_for_gun_placement(Square *i_square)
+{
+    if (m_guns.contains(qMakePair(i_square->m_row, i_square->m_col)))
+    {
+        return QVariant::fromValue(true);
+    } else {
+        return QVariant::fromValue(false);
+    }
+    return QVariant::fromValue(false);
+}
+
+Square* Board::find_square(QVariant row, QVariant col)
+{
+    QPair<int, int> pair;
+    pair.first = row.toInt();
+    pair.second = col.toInt();
+    if (m_squares.contains(pair)) {
+        Square* rv = m_squares.value(pair);
+        return rv;
+    } else {
+        qDebug() << "Invalid Square Object";
+        qApp->exit(0);
+    }
+    qDebug() << "Invalid Square Object";
+    qApp->exit(0);
+    return 0;
+}
+
+QVariant Board::is_end_square(QVariant row, QVariant col)
+{
+    QVariant rv;
+    if (m_ends.contains(qMakePair(row.toInt(), col.toInt()))) {
+     rv = QVariant::fromValue(true);
+    } else {
+        if (m_starts.contains(qMakePair(row.toInt(), col.toInt()))) {
+            rv = QVariant::fromValue(true);
+        } else {
+            rv = QVariant::fromValue(false);
+        }
+    }
+    return rv;
 }
 bool Board::is_neighbor_of_end(int row, int col) {
     bool rv = false;

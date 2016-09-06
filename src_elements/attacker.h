@@ -6,7 +6,7 @@
 #include <QVariant>
 #include <QQuickItem>
 class Square;
-class Attacker : public QQuickItem
+class Attacker : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QVariant speed MEMBER m_speed NOTIFY speedChanged)
@@ -54,8 +54,11 @@ signals:
     void yposChanged(QVariant newVal);
     void attackerVisualChanged(QObject* newObj);
     void healthChanged(QVariant newVal);
+
 public slots:
     void next_target();
+    void clear_path();
+    void add_square_to_path(Square* i_square);
 
 
 };

@@ -52,23 +52,27 @@ public:
     Projectile* new_projectile;
     int testArg;
     QVariantList readSquares();
-QVariantList readGuns();
-QList<Square*> readPath(int row, int col);
-QList<Square*> next_path_square(QList<Square*> cur_path);
+    QVariantList readGuns();
+    QList<Square*> readPath(int row, int col);
+    QList<Square*> next_path_square(QList<Square*> cur_path);
 
-QVariantList readAttackers();
+    QVariantList readAttackers();
     int m_rowCount;
     int m_colCount;
     bool is_neighbor_of_end(int row, int col);
     bool is_neighbor_of_start(int row, int col);
     int distance_from_end(Square* square);
-QList<Square*> m_best_path;
+    QList<Square*> m_best_path;
 
     QObject* m_lastSpawnedAttacker;
 
 
-   QVariant m_needBestPathUpdate;
-   QVariant m_lastGunPlacementValid;
+    QVariant m_needBestPathUpdate;
+    QVariant m_lastGunPlacementValid;
+    Q_INVOKABLE QVariant check_for_gun_placement(Square* i_square);
+    Q_INVOKABLE Square* find_square(QVariant row, QVariant col);
+    Q_INVOKABLE QVariant is_end_square(QVariant row, QVariant col);
+
 signals:
     void testArgChanged(int newArg);
     void squaresChanged(QVariantList newMap);
@@ -79,7 +83,7 @@ signals:
     void attackersChanged(QVariantList newList);
     void lastSpawnedAttackerChanged(QObject* newLast);
     void needBestPathUpdateChanged(QVariant newVal);
-    lastGunPlacementValidChanged(QVariant newVal);
+    void lastGunPlacementValidChanged(QVariant newVal);
 public slots:
     void add_path_data(QVariant c1, QVariant r1);
     void clear_path_data() { m_best_path.clear(); }
@@ -102,8 +106,8 @@ public slots:
     void placeAttacker(int row, int col, int attackerType, QVariant speed);
 
     void correctPaths();
-void removeAttacker(Attacker *att);
-void removeGun(int row, int col);
+    void removeAttacker(Attacker *att);
+    void removeGun(int row, int col);
     void populate_dead_ends();
 
 
