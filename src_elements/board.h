@@ -72,6 +72,7 @@ public:
     Q_INVOKABLE QVariant check_for_gun_placement(Square* i_square);
     Q_INVOKABLE Square* find_square(QVariant row, QVariant col);
     Q_INVOKABLE QVariant is_end_square(QVariant row, QVariant col);
+    Q_INVOKABLE Gun* find_gun(QVariant row, QVariant col);
 
 signals:
     void testArgChanged(int newArg);

@@ -14,6 +14,8 @@ class Wall;
 class Start;
 class End;
 class Board;
+class Player;
+class Team;
 class Game : public QObject
 {
     Q_OBJECT

@@ -2,6 +2,7 @@ import QtQuick 2.6
 import QtQuick.Window 2.2
 import com.towerdefense.fullcommand 2.0
 import QtQuick.Particles 2.0
+import QtQuick.Layouts 1.3
 import "src_js/logic.js" as Logic
 Window {
     visible: true
@@ -25,6 +26,78 @@ Window {
 
 
     }
+    TowerUpgradeMenu {
+        id: towerUpgradeMenu
+        height: 480
+        width: 240
+        anchors.right: background.right
+        z: 100
+        opacity: 0
+        property Gun gun
+        signal upgradeRange(Gun i_gun)
+        signal upgradeDamage(Gun i_gun)
+
+        Column {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+
+            spacing: 5
+            Timer {
+                id: fixUpgradeMenuColors
+                interval:  500
+                repeat: false
+                running: false
+                onTriggered: {
+                    rangeButton.color = "lightblue";
+                    damageButton.color = "gold";
+                }
+            }
+            Rectangle {
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        towerUpgradeMenu.upgradeRange(towerUpgradeMenu.gun);
+                        rangeButton.color = "gray";
+                        fixUpgradeMenuColors.start();
+
+                    }
+                }
+                id: rangeButton
+                color: "lightblue"; radius: 10.0
+                width: 300; height: 50;
+
+                Text { anchors.centerIn: parent
+                    font.pointSize: 15; text: "Range" } }
+
+            Rectangle {
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        towerUpgradeMenu.upgradeDamage(towerUpgradeMenu.gun);
+                        damageButton.color = "gray";
+                        fixUpgradeMenuColors.start();
+                    }
+                }
+                id: damageButton
+                color: "gold"; radius: 10.0
+                width: 300; height: 50
+                Text { anchors.centerIn: parent
+                    font.pointSize: 15; text: "Damage" } }
+            Rectangle {
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        towerUpgradeMenu.enabled = false;
+                        towerUpgradeMenu.opacity = 0;
+                    }
+                }
+                color: "lightgreen"; radius: 10.0
+                width: 300; height: 50
+                Text { anchors.centerIn: parent
+                    font.pointSize: 15; text: "Hide Menu" } }
+        }
+    }
 
     Game {
         id: game
@@ -33,10 +106,93 @@ Window {
         Component.onCompleted: {
             game.createBoard();
             init_squares();
+            towerUpgradeMenu.upgradeRange.connect(upgrade_range);
+            towerUpgradeMenu.upgradeDamage.connect(upgrade_damage);
+            towerUpgradeMenu.enabled = false;
 
         }
         property var grid;
         property var finder;
+        function upgrade_range(i_gun) {
+
+
+
+
+
+            var gu = i_gun;
+
+             var rangeLowAcc = gu.rangeLowAccuracy;
+            rangeLowAcc += gu.upgradeRangeAmount;
+            var squ = i_gun;
+            var sqvis = i_gun.gunVisual;
+            var gugunVisual = sqvis;
+            var gugunVisualx = gugunVisual.x
+            var gugunVisualy = gugunVisual.y
+            var gugunVisualavailableTargetSquares = gu.gunVisual.availableTargetSquares;
+            var squcol = squ.col;
+            var squrow = squ.row;
+            var sqviswidth = sqvis.width;
+            var sqvisheight = sqvis.height;
+
+            var min_sq_col = squcol - Math.round(rangeLowAcc / sqviswidth) - 1;
+            var min_sq_row = squrow - Math.round(rangeLowAcc / sqvisheight) - 1;
+            var max_sq_col = squcol + Math.round(rangeLowAcc / sqviswidth) + 1;
+            var max_sq_row = squrow + Math.round(rangeLowAcc / sqviswidth) + 1;
+            //fire_weapons.connect(gu.gunVisual.receive_fire_order);
+            var gameboardsquares = game.board.squares;
+            for (var w=0; w<gameboardsquares.length; w++) {
+
+                var sqObj = gameboardsquares[w];
+                var sqEl = sqObj.squareVisual;
+                var sqElx = sqEl.x;
+                var sqEly = sqEl.y;
+                var sqObjrow = sqObj.row;
+                var sqObjcol = sqObj.col;
+
+                if ((sqObjrow >= min_sq_row) && (sqObjrow <= max_sq_row)) {
+                    if ((sqObjcol >= min_sq_col) && (sqObjcol <= max_sq_col)) {
+
+
+
+                        var TL = truelength(gugunVisualx, gugunVisualy, sqElx, sqEly);
+
+
+                        if (TL < rangeLowAcc) {
+                            if (gugunVisualavailableTargetSquares.indexOf(sqObj) < 0) {
+                                gugunVisualavailableTargetSquares.push(sqObj);
+                                sqEl.gunsInRange.push(gu);
+                                //sqEl.isActiveTargetChanged.connect(gu.gunVisual.find_target);
+                                sqEl.becameActiveTarget.connect(gugunVisual.check_new_target);
+                                sqEl.lostActiveTarget.connect(gugunVisual.lost_active_target);
+                            }
+
+                        }
+                    }
+                }
+            }
+            gu.gunVisual.availableTargetSquares = gugunVisualavailableTargetSquares;
+            gu.rangeLowAccuracy = rangeLowAcc;
+
+
+
+        }
+        function upgrade_damage(i_gun) {
+            i_gun.damageLowAccuracy = i_gun.damageLowAccuracy + i_gun.upgradeDamageAmount;
+            for (var i=0; i<i_gun.gunVisual.ammo.length; i++) {
+                var tmp_ammo = i_gun.gunVisual.ammo[i];
+                var tmp_bullet = i_gun.gunVisual.bullets[i];
+                if (tmp_ammo != null) {
+                    tmp_ammo.min_damage = i_gun.damageLowAccuracy;
+                    tmp_ammo.max_damage = i_gun.damageLowAccuracy;
+
+                }
+                if (tmp_bullet != null) {
+                    tmp_bullet.min_damage = i_gun.damageLowAccuracy;
+                    tmp_bullet.max_damage = i_gun.damageLowAccuracy;
+                }
+
+            }
+        }
     }
 
     function get_shortest_path(c1, r1, c2, r2) {
@@ -44,7 +200,7 @@ Window {
     }
 
 
-    property int numFireGroups:  10;
+    property int numFireGroups:  8;
     property var squareHash: new Array(10);
     property var squareObjHash : new Array(10);
     property var gunHash: new Array(10);
@@ -137,6 +293,15 @@ Window {
     }
 
     signal fire_weapons(var i_fire_group);
+    function request_connect(i_gun) {
+        i_gun.gunVisual.isArmed = true;
+        fire_weapons.connect(i_gun.gunVisual.receive_fire_order);
+    }
+    function request_disconnect(i_gun) {
+        i_gun.gunVisual.isArmed = false;
+        fire_weapons.disconnect(i_gun.gunVisual.receive_fire_order);
+    }
+
     function create_gun(row, col) {
         var component;
         component = Qt.createComponent("src_qml/GunVisual.qml");
@@ -158,7 +323,8 @@ Window {
                     var min_sq_row = squ.row - Math.round(gu.rangeLowAccuracy / sqvis.height) - 1;
                     var max_sq_col = squ.col + Math.round(gu.rangeLowAccuracy / sqvis.width) + 1;
                     var max_sq_row = squ.row + Math.round(gu.rangeLowAccuracy / sqvis.width) + 1;
-                    fire_weapons.connect(gu.gunVisual.receive_fire_order);
+                    gu.gunVisual.isArmed = false;
+                    //fire_weapons.connect(gu.gunVisual.receive_fire_order);
                     for (var w=0; w<game.board.squares.length; w++) {
 
                         var sqObj = game.board.squares[w];
@@ -175,9 +341,11 @@ Window {
                                 if (TL < gu.rangeLowAccuracy) {
                                     gu.gunVisual.availableTargetSquares.push(sqObj);
                                     sqEl.gunsInRange.push(gu);
+                                    gu.gunVisual.request_connect.connect(request_connect);
+                                    gu.gunVisual.request_disconnect.connect(request_disconnect);
                                     //sqEl.isActiveTargetChanged.connect(gu.gunVisual.find_target);
                                     sqEl.becameActiveTarget.connect(gu.gunVisual.check_new_target);
-                                    sqEl.lostActiveTarget.connect(gu.gunVisual.lost_active_target);
+                                  sqEl.lostActiveTarget.connect(gu.gunVisual.lost_active_target);
 
                                 }
                             }
@@ -283,18 +451,20 @@ Window {
 
 
 
-            var newObj = component.createObject(background, { "origin_x" : gunObj.gunVisual.x , "origin_y" : gunObj.gunVisual.y, "ctx" : 0, "cty" : 0, "speed" : 25, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : 10, "max_damage" : 10, "min_damage" : 10, "possibleHitSquares" : gunObj.gunVisual.availableTargetSquares, "target_x" : target_x, "target_y" : target_y, "finito" : false, "opacity" : 0 } );
+            var gunObjgunVisual = gunObj.gunVisual;
+
+            var newObj = component.createObject(background, { "origin_x" : gunObjgunVisual.x , "origin_y" : gunObjgunVisual.y, "ctx" : 0, "cty" : 0, "speed" : 25, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : 10, "max_damage" : gunObj.damageLowAccuracy, "min_damage" : gunObj.damageLowAccuracy, "possibleHitSquares" : gunObjgunVisual.availableTargetSquares, "target_x" : target_x, "target_y" : target_y, "finito" : false, "opacity" : 0 } );
             newObj.width = (background.width / game.board.colCount) * 0.30;
             newObj.height = (background.height / game.board.rowCount) * 0.3;
-            newObj.x = gunObj.gunVisual.x + (gunObj.gunVisual.width * 0.5);
-            newObj.y = gunObj.gunVisual.y + (gunObj.gunVisual.height * 0.5);
+            newObj.x = gunObjgunVisual.x + (gunObjgunVisual.width * 0.5);
+            newObj.y = gunObjgunVisual.y + (gunObjgunVisual.height * 0.5);
             var o = 0;
 
 
             gunObj.gunVisual.add_ammo_round(newObj);
 
             newObj.arrivedAtTarget.connect(handleProjectileArrival);
-            newObj.finitoChanged.connect(gunObj.gunVisual.check_projectiles);
+            newObj.finitoChanged.connect(gunObjgunVisual.check_projectiles);
 
         }
     }
@@ -321,12 +491,20 @@ Window {
                 if ((ypos >= 0) && (ypos <= obj.height)) {
 
 
+                    var objattacker = obj.attacker;
+                    var objattackerhealth = objattacker.health;
+                    objattackerhealth = objattackerhealth - i_max_damage;
 
-                    obj.attacker.health = obj.attacker.health - i_max_damage;
-                    if (obj.attacker.health < 1) {
-                        obj.attacker.current.squareVisual.isActiveTarget = false;
-                        obj.attacker.target.squareVisual.isActiveTarget = false;
-                        var attObj = obj.attacker;
+                    var objattackercurrent = objattacker.current;
+                    var objattackertarget = objattacker.target;
+
+                    var objattackercurrentsquareVisual = objattackercurrent.squareVisual;
+                    var objattackertargetsquareVisual = objattackertarget.squareVisual;
+
+                    if (objattackerhealth < 1) {
+                        objattackercurrentsquareVisual.isActiveTarget = false;
+                        objattackertargetsquareVisual.isActiveTarget = false;
+                        var attObj = objattacker;
                         particleOverlay.customEmit(myx, myy);
                         obj.destroy();
                         game.board.removeAttacker(attObj);
@@ -334,7 +512,7 @@ Window {
                     }
 
 
-                       // particleOverlay.customEmit(myx, myy);
+                    // particleOverlay.customEmit(myx, myy);
 
                     c = attackerObjects.length;
                 }
@@ -360,7 +538,7 @@ Window {
     }
     property int enemyCount: 0;
     property int waveCount: 0;
-    property int numEnemiesPerWave: 6
+    property int numEnemiesPerWave: 3
     property int numWavesPerLevel: 3
     property int curAttackerArrayStart: 0
     property int curAttackerArrayStop : 50
@@ -388,7 +566,7 @@ Window {
 
     Timer {
         id: timerSpawn;
-        interval: 10000; running:false; repeat: true;
+        interval: 30000; running:false; repeat: true;
         onTriggered: function() {
             timerSpawn.stop();
             enemyCount = 0;
@@ -401,7 +579,7 @@ Window {
     }
     Timer {
         id: timerCreateEnemy;
-        interval: 1000;
+        interval: 800;
         running: false;
         repeat: true;
         onTriggered: {
@@ -409,7 +587,7 @@ Window {
 
 
 
-            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),1, 3 + enemyCount + waveCount);
+            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),1, 5);
             enemyCount++;
 
             if (enemyCount == 0) { init_attackers(); } else {
@@ -435,12 +613,12 @@ Window {
     property int stopO: 0;
     Timer {
         id: timerRotateGuns;
-        interval: 60
+        interval: 250
         running: true;
         repeat: true;
 
         onTriggered: function() {
-            if (rotO == -1) { init_squares(); init_guns(); rotO = 0; stopO = rotO + 12; }
+            if (rotO == -1) { init_squares(); init_guns(); rotO = 0; stopO = rotO + 1; }
             if (rotO > numFireGroups) { rotO = 0; stopO = 1; }
             fire_weapons(rotO);
             rotO++;
@@ -511,7 +689,7 @@ Window {
                                     var shRoute = get_shortest_path(Math.round(game.board.colCount * 0.5),0, Math.round(game.board.colCount * 0.5), game.board.rowCount - 1);
                                     if (shRoute[2] != null) {
                                         game.board.clear_path_data();
-                                     //   console.log(shRoute.length + " - " + shRoute);
+                                        //   console.log(shRoute.length + " - " + shRoute);
                                         var q = 0;
                                         while (shRoute[q] != null) {
                                             game.board.add_path_data(parseInt(shRoute[q][0]),parseInt(shRoute[q][1]));
@@ -541,7 +719,11 @@ Window {
 
                                         create_gun(obj.square.row, obj.square.col);
                                     } else {
-                                     // display  TowerUpgradeMenu
+                                        towerUpgradeMenu.opacity = 1.0;
+                                        towerUpgradeMenu.gun = game.board.find_gun(obj.square.row, obj.square.col);
+                                        towerUpgradeMenu.enabled = true;
+                                        console.log("setting upgrade menu gun to " + towerUpgradeMenu.gun);
+                                        // display  TowerUpgradeMenu
 
 
                                     }

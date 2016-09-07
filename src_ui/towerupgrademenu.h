@@ -6,15 +6,18 @@
 #include <QQuickItem>
 #else
 #endif
-
+#include <QObject>
+class Gun;
 class TowerUpgradeMenu : public QQuickItem
 {
     Q_OBJECT
+    Q_PROPERTY(Gun* gun MEMBER m_gun NOTIFY gunChanged)
 public:
     TowerUpgradeMenu();
+    Gun* m_gun;
 
 signals:
-
+    void gunChanged(Gun* newGun);
 public slots:
 };
 

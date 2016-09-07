@@ -13,6 +13,11 @@ class Gun : public QObject
     Q_PROPERTY(int gunType MEMBER m_gunType NOTIFY gunTypeChanged)
     Q_PROPERTY(QObject* gunVisual MEMBER m_gunVisual NOTIFY gunVisualChanged)
     Q_PROPERTY(double rangeLowAccuracy MEMBER m_rangeLowAccuracy NOTIFY rangeLowAccuracyChanged)
+    Q_PROPERTY(double damageLowAccuracy MEMBER damageLowAccuracy NOTIFY damageLowAccuracyChanged)
+    Q_PROPERTY( double upgradeRangeAmount MEMBER upgradeRangeAmount NOTIFY upgradeRangeAmountChanged)
+    Q_PROPERTY( double upgradeDamageAmount MEMBER upgradeDamageAmount NOTIFY upgradeDamageAmountChanged)
+    Q_PROPERTY( double upgradeRangeCost MEMBER upgradeRangeCost NOTIFY upgradeRangeCostChanged)
+
 public:
     explicit Gun(QObject *parent = 0);
     bool isBlank;
@@ -83,6 +88,10 @@ signals:
     void gunVisualChanged(QObject* newObj);
     void gunTypeChanged(int newGunType);
     void rangeLowAccuracyChanged(double newRange);
+    void damageLowAccuracyChanged(double newDamage);
+    void upgradeRangeAmountChanged(double newAmt);
+    void upgradeDamageAmountChanged(double newAmt);
+    void upgradeRangeCostChanged(double newAmt);
 public slots:
 };
 

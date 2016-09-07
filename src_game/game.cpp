@@ -7,7 +7,8 @@
 #include "../src_elements/end.h"
 #include <QObject>
 #include <QQmlContext>
-
+#include "player.h"
+#include "team.h"
 
 
 Game::Game(QObject *parent, QQmlContext *i_context) : QObject(parent), m_context(i_context)
@@ -24,4 +25,6 @@ void Game::createBoard() {
     this->connect(m_map, SIGNAL(placeEnd(int, int)), m_board, SLOT(placeEnd(int,int)));
     this->connect(m_map, SIGNAL(placeSquare(int, int)), m_board, SLOT(placeSquare(int,int)));
     m_map->Map::create_blank_map();
+
+
 }

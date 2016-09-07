@@ -107,6 +107,10 @@ void Board::placeGun(int row, int col, int gunType) {
             new_gun->m_col = col;
             new_gun->m_gunType = gunType;
             new_gun->m_rangeLowAccuracy = 200;
+            new_gun->upgradeRangeAmount = 30;
+            new_gun->upgradeRangeCost = 100;
+            new_gun->damageLowAccuracy = 10;
+            new_gun->upgradeDamageAmount = 5;
             this->m_lastGunPlacementValid = QVariant::fromValue(true);
             if (m_squares.contains(pair)) {
                 Square* tmp_sq = m_squares.value(pair);
@@ -378,6 +382,23 @@ QVariant Board::is_end_square(QVariant row, QVariant col)
         }
     }
     return rv;
+}
+
+Gun *Board::find_gun(QVariant row, QVariant col)
+{
+    QPair<int, int> pair;
+    pair.first = row.toInt();
+    pair.second = col.toInt();
+    if (m_guns.contains(pair)) {
+       Gun* rv = m_guns.value(pair);
+        return rv;
+    } else {
+        qDebug() << "Invalid Gun Object";
+        qApp->exit(0);
+    }
+    qDebug() << "Invalid Gun Object";
+    qApp->exit(0);
+    return 0;
 }
 bool Board::is_neighbor_of_end(int row, int col) {
     bool rv = false;
