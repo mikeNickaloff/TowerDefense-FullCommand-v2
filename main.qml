@@ -8,7 +8,7 @@ Window {
     visible: true
     width: 640
     height: 640
-    title: qsTr("Hello World")
+    title: qsTr("Tower Defense - Complete Command v2 - 3.9 beta")
     Item {
         id: background
         width: 640
@@ -121,7 +121,7 @@ Window {
 
             var gu = i_gun;
 
-             var rangeLowAcc = gu.rangeLowAccuracy;
+            var rangeLowAcc = gu.rangeLowAccuracy;
             rangeLowAcc += gu.upgradeRangeAmount;
             var squ = i_gun;
             var sqvis = i_gun.gunVisual;
@@ -345,7 +345,7 @@ Window {
                                     gu.gunVisual.request_disconnect.connect(request_disconnect);
                                     //sqEl.isActiveTargetChanged.connect(gu.gunVisual.find_target);
                                     sqEl.becameActiveTarget.connect(gu.gunVisual.check_new_target);
-                                  sqEl.lostActiveTarget.connect(gu.gunVisual.lost_active_target);
+                                    sqEl.lostActiveTarget.connect(gu.gunVisual.lost_active_target);
 
                                 }
                             }
@@ -413,22 +413,40 @@ Window {
         component = attackerComponent;
         if (component.status == Component.Ready) {
 
-
-
-
             var dynamicObject = component.createObject(background, { "attacker" : squ, "startX" : getX(squ.current.col), "x" : getX(squ.current.col), "y" : getY(squ.current.row),  "startY" : getY(squ.current.row), "endX" : getX(squ.target.col), "endY" : getY(squ.target.row), "speed" : squ.speed,  "ecdx" : 0, "ecdy" : 0, "game" : game });
             dynamicObject.width = (background.width / game.board.colCount);
             dynamicObject.height = (background.height / game.board.rowCount);
 
-
             squ.set_attackerVisual(dynamicObject);
             squ.attackerVisual.attackerPathFinished.connect(handleAttackerReachedEnd);
+            squ.attackerVisual.show_particles.connect(particleOverlay.customEmit);
+            squ.attackerVisual.removeAttacker.connect(removeAttacker);
 
 
 
 
         }
     }
+
+    function removeAttacker(attackerObject) {
+        var objattackercurrent = attackerObject.current;
+        var objattackertarget = attackerObject.target;
+
+        var objattackercurrentsquareVisual = objattackercurrent.squareVisual;
+        var objattackertargetsquareVisual = objattackertarget.squareVisual;
+
+
+        objattackercurrentsquareVisual.isActiveTarget = false;
+        objattackertargetsquareVisual.isActiveTarget = false;
+        var attObj = attackerObject;
+        var obj = attObj.attackerVisual;
+        obj.show_particles.disconnect(particleOverlay.customEmit);
+        obj.destroy();
+        game.board.removeAttacker(attObj);
+
+
+    }
+
 
     function handleAttackerReachedEnd(attackerObject) {
         attackerObject.target.squareVisual.isActiveTarget = false;
@@ -440,12 +458,12 @@ Window {
     }
 
     property var projectileHash: new Array(1005);
-    property Component projectileComponent: Qt.createComponent("src_qml/ProjectileVisual.qml");
+
 
 
 
     function create_projectile(gunObj, target_x, target_y) {
-
+        var projectileComponent = Qt.createComponent("src_qml/ProjectileVisual.qml");
         var component = projectileComponent;
         if (component.status == Component.Ready) {
 
@@ -453,7 +471,7 @@ Window {
 
             var gunObjgunVisual = gunObj.gunVisual;
 
-            var newObj = component.createObject(background, { "origin_x" : gunObjgunVisual.x , "origin_y" : gunObjgunVisual.y, "ctx" : 0, "cty" : 0, "speed" : 25, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : 10, "max_damage" : gunObj.damageLowAccuracy, "min_damage" : gunObj.damageLowAccuracy, "possibleHitSquares" : gunObjgunVisual.availableTargetSquares, "target_x" : target_x, "target_y" : target_y, "finito" : false, "opacity" : 0 } );
+            var newObj = component.createObject(background, { "origin_x" : gunObjgunVisual.x , "origin_y" : gunObjgunVisual.y, "ctx" : 0, "cty" : 0, "speed" : 20, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : 10, "max_damage" : gunObj.damageLowAccuracy, "min_damage" : gunObj.damageLowAccuracy, "possibleHitSquares" : gunObjgunVisual.availableTargetSquares, "target_x" : target_x, "target_y" : target_y, "finito" : false, "opacity" : 0 } );
             newObj.width = (background.width / game.board.colCount) * 0.30;
             newObj.height = (background.height / game.board.rowCount) * 0.3;
             newObj.x = gunObjgunVisual.x + (gunObjgunVisual.width * 0.5);
@@ -464,7 +482,8 @@ Window {
             gunObj.gunVisual.add_ammo_round(newObj);
 
             newObj.arrivedAtTarget.connect(handleProjectileArrival);
-            newObj.finitoChanged.connect(gunObjgunVisual.check_projectiles);
+            newObj.arrivedAtTarget.connect(gunObjgunVisual.check_projectiles);
+            //newObj.finitoChanged.connect(gunObjgunVisual.check_projectiles);
 
         }
     }
@@ -478,15 +497,15 @@ Window {
         var hit_attacker = false;
 
 
-
+/*
         for (var c=0; c<attackerObjects.length; c++) {
             var obj = attackerObjects[c].attackerVisual;
 
             //var apos = background.mapToItem(obj, myx, myy)
             //var xpos = apos.x;
             //var ypos = apos.y;
-            var xpos = Math.abs(obj.x - myx);
-            var ypos = Math.abs(obj.y - myy);
+            var xpos = Math.abs(obj.endX - myx);
+            var ypos = Math.abs(obj.endY - myy);
             if ((xpos >= 0) && (xpos <= obj.width)) {
                 if ((ypos >= 0) && (ypos <= obj.height)) {
 
@@ -514,13 +533,13 @@ Window {
 
                     // particleOverlay.customEmit(myx, myy);
 
-                    c = attackerObjects.length;
+                    break;
                 }
 
             }
 
 
-        }
+        } */
 
     }
 
@@ -538,8 +557,8 @@ Window {
     }
     property int enemyCount: 0;
     property int waveCount: 0;
-    property int numEnemiesPerWave: 3
-    property int numWavesPerLevel: 3
+    property int numEnemiesPerWave: 6
+    property int numWavesPerLevel: 2
     property int curAttackerArrayStart: 0
     property int curAttackerArrayStop : 50
     property int numAttackersPerFrame: 50
@@ -566,9 +585,9 @@ Window {
 
     Timer {
         id: timerSpawn;
-        interval: 30000; running:false; repeat: true;
+        interval: 35000; running:false; repeat: true;
         onTriggered: function() {
-            timerSpawn.stop();
+
             enemyCount = 0;
 
             timerCreateEnemy.start();
@@ -579,7 +598,7 @@ Window {
     }
     Timer {
         id: timerCreateEnemy;
-        interval: 800;
+        interval: 1700;
         running: false;
         repeat: true;
         onTriggered: {
@@ -587,11 +606,11 @@ Window {
 
 
 
-            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),1, 5);
+            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),1, 4);
             enemyCount++;
 
             if (enemyCount == 0) { init_attackers(); } else {
-                game.board.lastSpawnedAttacker.health = (30  + (enemyCount * 10) + (waveCount * 20)) * game.level;
+                game.board.lastSpawnedAttacker.health = (Math.pow(15, 0.5 + (game.level * 0.25)));
                 create_atttacker(game.board.lastSpawnedAttacker);
 
 
@@ -602,7 +621,7 @@ Window {
                 waveCount++;
                 if (waveCount > numWavesPerLevel) { waveCount = 0; game.level = game.level + 1; console.log("Game level is now " + game.level); }
                 timerCreateEnemy.stop();
-                timerSpawn.start();
+            //    timerSpawn.start();
 
 
             }
@@ -613,7 +632,7 @@ Window {
     property int stopO: 0;
     Timer {
         id: timerRotateGuns;
-        interval: 250
+        interval: 200
         running: true;
         repeat: true;
 
@@ -623,6 +642,7 @@ Window {
             fire_weapons(rotO);
             rotO++;
             stopO++;
+
             /* if (stopO > game.board.guns.length) { stopO = game.board.guns.length; }
 
             for (var t=rotO; t<stopO; t++) {
@@ -730,6 +750,7 @@ Window {
                                 }
 
                                 timerSpawn.running = true;
+                                  timerCreateEnemy.start();
 
 
                             }
@@ -829,6 +850,91 @@ Window {
             }
             //! [0]
         }
+
+    }
+    ListModel {
+        id: projectile_model;
+    }
+    ListModel {
+        id: attacker_model;
+    }
+
+    ListModel {
+        id: gun_model;
+    }
+
+    ListModel {
+        id: attacker_ids;
+    }
+
+    function create_collision_data() {
+        var gameboard = game.board;
+        var m_guns = gameboard.guns;
+        var m_attackers = gameboard.attackers;
+
+        for (var g=0; g<m_guns.length; g++) {
+            var gun = m_guns[g];
+            if (gun !=  null) {
+                var gun_bullets = gun.gunVisual.bullets;
+                for (var b=0; b<gun_bullets.length; b++) {
+                    var gun_bullet = gun_bullets[b];
+                    if (gun_bullet != null) {
+                        projectile_model.append({
+                                                    "x" : gun_bullet.x,
+                                                    "y" : gun_bullet.y,
+                                                    "target_x" : gun_bullet.target_x,
+                                                    "target_y" : gun_bullet.target_y,
+                                                    "min_damage" : gun_bullet.min_damage,
+                                                    "max_damage" : gun_bullet.max_damage,
+                                                    "speed" : gun_bullet.speed,
+                                                    "proximity_distance" : gun_bullet.proximity_distance,
+                                                    "splash_distance" : gun_bullet.splash_distance,
+                                                } );
+                    }
+                }
+
+
+
+            }
+        }
+        for (var m=0; m<m_attackers.length; m++) {
+            var attacker = m_attackers[m].attackerVisual;
+            if (attacker != null) {
+                attacker_ids.set(m, attacker);
+                attacker_model.append({
+                                          "x" : attacker.x,
+                                          "y" : attacker.y,
+                                          "width": attacker.width,
+                                          "height" : attacker.height,
+                                          "health" : attacker.health,
+                                          "attacker_id" : m
+                                      });
+            }
+        }
+        var tmp_message = { "projectile_model" : projectile_model, "attacker_model" : attacker_model };
+        projectileWorker.sendMessage(tmp_message);
+        projectile_model.clear();
+        attacker_model.clear();
+    }
+
+
+
+
+    WorkerScript {
+        id: projectileWorker
+        source: "./src_js/ProjectileWorker.js"
+
+        onMessage: function(messageObject) {
+
+            if (messageObject.msgtype == "hit") {
+                console.log("attacker " +  messageObject.id + " took " + messageObject.damage + " damage");
+
+            } else {
+                if (messageObject.msgtype == "end") {   create_collision_data(); }
+            }
+        }
+
+
 
     }
 }

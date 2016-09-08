@@ -35,7 +35,7 @@ Item {
     signal request_disconnect(Gun i_gun);
     function receive_fire_order(i_fire_group) {
 
-        if (parseInt(i_fire_group) == fireGroup) {
+        if ((isArmed == true) && (parseInt(i_fire_group) == fireGroup)) {
             if (next_fire < Date.now()) {
                 if (closest_sq != null) {
                     //console.log("Order received -- assigning closest_sq props to tmp vars");
@@ -46,9 +46,9 @@ Item {
                     var _width = width;
                     if (closest_sqsquareVisual.isActiveTarget == true) {
                         //create_projectile(gunP, gunObj.closest_sq.squareVisual.x + (gunObj.width * 0.5), gunObj.closest_sq.squareVisual.y + (gunObj.height * 0.5));
-                        fire_projectile(closest_sqsquareVisualx + (_width * 0.5), closest_sqsquareVisualy + (_height * 0.5));
+                        fire_projectile(closest_sqsquareVisualx + (_width * 0.5), closest_sqsquareVisualy + (_height * 0.5), closest_sqsquareVisual);
 
-                        next_fire = parseInt(Date.now() + 1500);
+                        next_fire = parseInt(Date.now() + 700);
                     }
                 }
             }
@@ -60,7 +60,7 @@ Item {
         ammo.push(projectileVisualObject);
 
     }
-    function fire_projectile(targetX, targetY) {
+    function fire_projectile(targetX, targetY, targetSquareVisual) {
 
         var _ammo = ammo;
         var _bullets = bullets;
@@ -70,6 +70,7 @@ Item {
                 bullet.target_x = targetX;
                 bullet.target_y = targetY;
                 bullet.finito = false;
+                bullet.target_squareVisual = targetSquareVisual
                 bullet.startAnim();
                 _bullets[c] = bullet;
                 bullet.opacity = 1.0;
@@ -104,6 +105,7 @@ Item {
         width: parent.width * 1.02
         height: parent.height * 1.02
         id: gunImage
+        opacity: isArmed == true ? 1.0 : 0.8
         Behavior on width {
             NumberAnimation { duration: 300 }
         }

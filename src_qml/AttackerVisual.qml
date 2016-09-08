@@ -13,7 +13,7 @@ Item {
 
     }
     id: viz
-   property var startX
+    property var startX
     property var startY
     property var endX
     property var endY
@@ -24,84 +24,108 @@ Item {
     property Game game;
     property Square i_square;
 
+    signal show_particles(var xPos, var yPos);
+    signal removeAttacker(var attacker);
+
     function get_shortest_path(c1, r1, c2, r2) {
         return Logic.get_shortest_path(c1, r1, c2, r2);
     }
 
+    function projectile_hit(min_damage, max_damage, splash_distance) {
+        if (viz) {
+            viz.show_particles(endX, endY);
+
+            if (attacker != null) {
+                var attackerHealth = attacker.health;
+                attackerHealth -= (Math.random() * (max_damage - min_damage)) + min_damage
+                if (attackerHealth < 1) {
+                    viz.removeAttacker(attacker);
+
+                }
+            }
+        }
+    }
 
     ParallelAnimation {
-           running: true;
-           id: anim1
-           XAnimator {  target: viz; from: startX; to:  endX; duration: (Math.abs(viz.x - endX) / attacker.speed) * 100 }
-           YAnimator {  target: viz;  from: startY; to: endY; duration: (Math.abs(viz.y - endY) / attacker.speed) * 100 }
-           onStopped: {
+        running: true;
+        id: anim1
+        NumberAnimation {  target: viz; property: "x"; from: startX; to:  endX; duration: (Math.abs(viz.x - endX) / attacker.speed) * 100 }
+        NumberAnimation {  target: viz;  property: "y";  from: startY; to: endY; duration: (Math.abs(viz.y - endY) / attacker.speed) * 100 }
+        onStopped: {
 
-               attacker.next_target();
 
-               var attackertarget = attacker.target;
-               var attackercurrent = attacker.current;
 
-               var attackertargetsquareVisual = attackertarget.squareVisual;
-               var attackercurrentsquareVisual = attackercurrent.squareVisual
+            attacker.next_target();
 
-               attackertargetsquareVisual.isActiveTarget = true;
-               attackercurrentsquareVisual.isActiveTarget = false;
-               var i_result = game.board.check_for_gun_placement(attackertarget);
+            var attackertarget = attacker.target;
+            var attackercurrent = attacker.current;
+            attacker.current.squareVisual.projectile_hit.disconnect(projectile_hit);
 
-               if (i_result == true) {
-                   attackertargetsquareVisual.isActiveTarget = false;
-                   // generate a new path
-                   var shRoute = get_shortest_path(attackercurrent.col ,attackercurrent.row, Math.round(game.board.colCount * 0.5), game.board.rowCount - 1);
-                   if (shRoute[2] != null) {
-                       attacker.clear_path();
+            var attackertargetsquareVisual = attackertarget.squareVisual;
+            var attackercurrentsquareVisual = attackercurrent.squareVisual
+
+            attackertargetsquareVisual.projectile_hit.connect(projectile_hit);
+
+
+            attackertargetsquareVisual.isActiveTarget = true;
+            attackercurrentsquareVisual.isActiveTarget = false;
+            var i_result = game.board.check_for_gun_placement(attackertarget);
+
+            if (i_result == true) {
+                attackertargetsquareVisual.isActiveTarget = false;
+                // generate a new path
+                var shRoute = get_shortest_path(attackercurrent.col ,attackercurrent.row, Math.round(game.board.colCount * 0.5), game.board.rowCount - 1);
+                if (shRoute[2] != null) {
+                    attacker.clear_path();
                     //   console.log(shRoute.length + " - " + shRoute);
-                       var q = 0;
-                       //var pathArray = [][2];
-                       attacker.add_square_to_path(attackercurrent);
-                       var gameboard = game.board;
-                       while (shRoute[q] != null) {
+                    var q = 0;
+                    //var pathArray = [][2];
+                    attacker.add_square_to_path(attackercurrent);
+                    var gameboard = game.board;
+                    while (shRoute[q] != null) {
 
-                           var tmpRow = parseInt(shRoute[q][1]);
-                           var tmpCol = parseInt(shRoute[q][0]);
-                           var isEnd = gameboard.is_end_square(tmpRow, tmpCol);
-                           if (isEnd == false) {
-                               i_square = gameboard.find_square(parseInt(shRoute[q][1]), parseInt(shRoute[q][0]));
-                               attacker.add_square_to_path(i_square);
-                           }
-                           q++;
-
-
-                           //console.log(nd);
-                       }
-
-                       attacker.next_target();
-
-                   } else {
-
-                        console.log("attacker is trapped");
-                   }
+                        var tmpRow = parseInt(shRoute[q][1]);
+                        var tmpCol = parseInt(shRoute[q][0]);
+                        var isEnd = gameboard.is_end_square(tmpRow, tmpCol);
+                        if (isEnd == false) {
+                            i_square = gameboard.find_square(parseInt(shRoute[q][1]), parseInt(shRoute[q][0]));
+                            attacker.add_square_to_path(i_square);
+                        }
+                        q++;
 
 
-               } else {
-                   // dont worry about it
+                        //console.log(nd);
+                    }
 
-               }
+                    attacker.next_target();
+                    attacker.target.squareVisual.projectile_hit.connect(projectile_hit);
 
-               if (attacker.speed > 0) {
-                   startX = endX;
-                   startY = endY;
-                   endX = attackertargetsquareVisual.x
-                   endY = attackertargetsquareVisual.y
-                   attackertargetsquareVisual.distanceToEnd = attacker.distanceToEnd;
-                   startAnim();
-               } else {
-                   attackerPathFinished(attacker);
-               }
+                } else {
 
-               attacker.target = attackertarget;
-               attacker.current = attackercurrent;
-           }
-       }
+                    console.log("attacker is trapped");
+                }
+
+
+            } else {
+                // dont worry about it
+
+            }
+
+            if (attacker.speed > 0) {
+                startX = endX;
+                startY = endY;
+                endX = attackertargetsquareVisual.x
+                endY = attackertargetsquareVisual.y
+                attackertargetsquareVisual.distanceToEnd = attacker.distanceToEnd;
+                startAnim();
+            } else {
+                attackerPathFinished(attacker);
+            }
+
+            //  attacker.target = attackertarget;
+            // attacker.current = attackercurrent;
+        }
+    }
     signal attackerPathFinished(var attackerObject);
     function startAnim() {
         if (!anim1.running) {
