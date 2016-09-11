@@ -33,5 +33,6 @@
         <file>src_qml/TowerChooserVisual.qml</file>
         <file>src_qml/images/particles/particle2.png</file>
         <file>src_js/ProjectileWorker.js</file>
+        <file>src_qml/images/particles/particle.png</file>
     </qresource>
 </RCC>

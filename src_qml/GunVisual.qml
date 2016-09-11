@@ -182,7 +182,7 @@ Item {
 
     function find_target() {
          //closest_sq = null;
-         targetDistance = 5000;
+         //targetDistance = 5000;
         var found_enemy = false;
         var _availableTargetSquares = availableTargetSquares;
         for (var i=0; i<_availableTargetSquares.length; i++) {
@@ -206,7 +206,11 @@ Item {
 
         } */
         if (found_enemy == false) {
-           if (isArmed == true) { request_disconnect(gun); }
+           if (isArmed == true) { request_disconnect(gun); targetDistance = 99999; }
+        } else {
+            if (closest_sq.squareVisual.isActiveTarget == false) {
+               targetDistance = 9999;
+            }
         }
 
     }

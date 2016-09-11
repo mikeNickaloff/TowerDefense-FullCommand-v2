@@ -29,8 +29,8 @@ Item {
     ParallelAnimation {
            running: false;
            id: anim1
-           NumberAnimation { property: "x"; target: proj; from: origin_x; to:  target_x; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 45 }
-           NumberAnimation { property: "y"; target: proj; from: origin_y; to: target_y; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 45 }
+           NumberAnimation { property: "x"; target: proj; from: origin_x; to:  target_x; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
+           NumberAnimation { property: "y"; target: proj; from: origin_y; to: target_y; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
            onStopped: {
                //target_x = x;
                //target_y = y;

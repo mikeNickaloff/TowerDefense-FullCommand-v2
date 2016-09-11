@@ -6,6 +6,7 @@
 #include <QHash>
 #include <QVariant>
 #include <QVariantMap>
+#include <QQmlListProperty>
 class Square;
 class Wall;
 class Start;
@@ -17,9 +18,9 @@ class Projectile;
 class Board : public QObject
 {
     Q_PROPERTY(int testArg MEMBER testArg NOTIFY testArgChanged)
-    Q_PROPERTY(QVariantList squares READ readSquares WRITE setSquares NOTIFY squaresChanged)
-    Q_PROPERTY(QVariantList guns READ readGuns NOTIFY gunsChanged)
-    Q_PROPERTY(QVariantList attackers READ readAttackers NOTIFY attackersChanged)
+    Q_PROPERTY(QVariantList squares READ squares WRITE setSquares)
+    Q_PROPERTY(QVariant guns READ guns)
+    Q_PROPERTY(QVariant attackers READ attackers)
     Q_PROPERTY(QVariant needBestPathUpdate MEMBER m_needBestPathUpdate NOTIFY needBestPathUpdateChanged)
     Q_OBJECT
     Q_PROPERTY(int rowCount MEMBER m_rowCount NOTIFY rowCountChanged)
@@ -51,12 +52,12 @@ public:
     Attacker* new_attacker;
     Projectile* new_projectile;
     int testArg;
-    QVariantList readSquares();
-    QVariantList readGuns();
+    QVariant readSquares();
+    QVariant readGuns();
     QList<Square*> readPath(int row, int col);
     QList<Square*> next_path_square(QList<Square*> cur_path);
 
-    QVariantList readAttackers();
+    QVariant readAttackers();
     int m_rowCount;
     int m_colCount;
     bool is_neighbor_of_end(int row, int col);
@@ -69,6 +70,13 @@ public:
 
     QVariant m_needBestPathUpdate;
     QVariant m_lastGunPlacementValid;
+
+    QVariantList v_squares;
+    QVariantList v_guns;
+    QVariantList v_attackers;
+    Q_INVOKABLE QVariantList squares() { return v_squares; }
+    Q_INVOKABLE QVariantList attackers() { return v_attackers; }
+    Q_INVOKABLE QVariantList guns() { return v_guns; }
     Q_INVOKABLE QVariant check_for_gun_placement(Square* i_square);
     Q_INVOKABLE Square* find_square(QVariant row, QVariant col);
     Q_INVOKABLE QVariant is_end_square(QVariant row, QVariant col);
@@ -88,7 +96,7 @@ signals:
 public slots:
     void add_path_data(QVariant c1, QVariant r1);
     void clear_path_data() { m_best_path.clear(); }
-    void setSquares(QVariantList newMap);
+    void setSquares(QVariant newMap);
 
 
     // slots for initializing map prior to loading

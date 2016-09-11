@@ -10,6 +10,7 @@
 #include <QObject>
 #include <QtDebug>
 #include <QQmlContext>
+#include <QQmlListProperty>
 
 
 Board::Board(QObject *parent, Game *i_game) : QObject(parent), m_game(i_game)
@@ -67,6 +68,18 @@ void Board::placeSquare(int row, int col) {
     new_square->m_row = row;
     new_square->m_col = col;
 
+    QVariantList rv;
+    QList<Square*> tmp_squares;
+    tmp_squares << this->m_squares.values();
+    // int u = 0;
+    //qDebug() << tmp_squares;
+    foreach (Square* sq, tmp_squares) {
+        //    u++;
+        rv.append(QVariant::fromValue(sq));
+    }
+
+    v_squares.clear();
+    v_squares = rv;
 
 }
 
@@ -107,10 +120,10 @@ void Board::placeGun(int row, int col, int gunType) {
             new_gun->m_col = col;
             new_gun->m_gunType = gunType;
             new_gun->m_rangeLowAccuracy = 200;
-            new_gun->upgradeRangeAmount = 30;
-            new_gun->upgradeRangeCost = 100;
+            new_gun->upgradeRangeAmount = 1.75;
+            new_gun->upgradeRangeCost = 4;
             new_gun->damageLowAccuracy = 10;
-            new_gun->upgradeDamageAmount = 5;
+            new_gun->upgradeDamageAmount = 2;
             this->m_lastGunPlacementValid = QVariant::fromValue(true);
             if (m_squares.contains(pair)) {
                 Square* tmp_sq = m_squares.value(pair);
@@ -123,7 +136,17 @@ void Board::placeGun(int row, int col, int gunType) {
             if (m_best_path.count() < 2) { this->m_needBestPathUpdate = QVariant::fromValue(true); }
 
 
-
+            QVariantList rv;
+            QList<Gun*> tmp_guns;
+            tmp_guns << this->m_guns.values();
+            // int u = 0;
+            //qDebug() << tmp_squares;
+            foreach (Gun* gu, tmp_guns) {
+                //        u++;
+                rv.append(QVariant::fromValue(gu));
+            }
+            v_guns.clear();
+            v_guns = rv;
 
 
         } else {
@@ -167,6 +190,17 @@ void Board::placeAttacker(int row, int col, int attackerType, QVariant speed) {
         new_attacker->m_target = QVariant::fromValue(new_attacker->m_path.takeFirst());
 
         m_lastSpawnedAttacker = new_attacker;
+        QVariantList rv;
+        QList<Attacker*> tmp_attackers;
+        tmp_attackers << this->m_attackers.values();
+        // int u = 0;
+        //qDebug() << tmp_squares;
+        foreach (Attacker* att, tmp_attackers) {
+            //        u++;
+            rv.append(QVariant::fromValue(att));
+        }
+        v_attackers.clear();
+        v_attackers = rv;
     }
 
 
@@ -202,37 +236,39 @@ void Board::removeGun(int row, int col) {
     m_guns.remove(qMakePair(row, col));
 }
 
-void Board::setSquares(QVariantList newMap) {
+void Board::setSquares(QVariant newMap) {
 
 }
-QVariantList Board::readSquares() {
-    QVariantList rv;
+QVariant Board::readSquares() {
+    //    QVariantList rv;
     QList<Square*> tmp_squares;
     tmp_squares << this->m_squares.values();
-    int u = 0;
+    //   int u = 0;
     //qDebug() << tmp_squares;
-    foreach (Square* sq, tmp_squares) {
-        u++;
-        rv.append(QVariant::fromValue(sq));
-    }
+    //    foreach (Square* sq, tmp_squares) {
+    //      u++;
+    //    rv.append(QVariant::fromValue(sq));
+    //  }
 
     // qDebug() << rv;
-    return rv;
+    QVariant list = QVariant::fromValue(tmp_squares);
+    return list;
 }
 
-QVariantList Board::readGuns() {
-    QVariantList rv;
+QVariant Board::readGuns() {
+    //QVariantList rv;
     QList<Gun*> tmp_guns;
     tmp_guns << this->m_guns.values();
-    int u = 0;
+    // int u = 0;
     //qDebug() << tmp_squares;
-    foreach (Gun* gu, tmp_guns) {
-        u++;
-        rv.append(QVariant::fromValue(gu));
-    }
+    //foreach (Gun* gu, tmp_guns) {
+    //        u++;
+    //       rv.append(QVariant::fromValue(gu));
+    //  }
 
     // qDebug() << rv;
-    return rv;
+    QVariant list = QVariant::fromValue(tmp_guns);
+    return list;
 }
 QList<Square*> Board::readPath(int row, int col) {
     return m_best_path;
@@ -310,19 +346,20 @@ QList<Square*> Board::find_neighbors(int row, int col) {
 
 }
 
-QVariantList Board::readAttackers() {
-    QVariantList rv;
+QVariant Board::readAttackers() {
+    //QVariantList rv;
     QList<Attacker*> tmp_attackers;
     tmp_attackers << this->m_attackers.values();
-    int u = 0;
+    // int u = 0;
     //qDebug() << tmp_squares;
-    foreach (Attacker* att, tmp_attackers) {
-        u++;
-        rv.append(QVariant::fromValue(att));
-    }
+    //foreach (Attacker* att, tmp_attackers) {
+    //        u++;
+    //        rv.append(QVariant::fromValue(att));
+    //  }
 
     // qDebug() << rv;
-    return rv;
+    QVariant list = QVariant::fromValue(tmp_attackers);
+    return list;
 }
 
 
@@ -373,7 +410,7 @@ QVariant Board::is_end_square(QVariant row, QVariant col)
 {
     QVariant rv;
     if (m_ends.contains(qMakePair(row.toInt(), col.toInt()))) {
-     rv = QVariant::fromValue(true);
+        rv = QVariant::fromValue(true);
     } else {
         if (m_starts.contains(qMakePair(row.toInt(), col.toInt()))) {
             rv = QVariant::fromValue(true);
@@ -390,7 +427,7 @@ Gun *Board::find_gun(QVariant row, QVariant col)
     pair.first = row.toInt();
     pair.second = col.toInt();
     if (m_guns.contains(pair)) {
-       Gun* rv = m_guns.value(pair);
+        Gun* rv = m_guns.value(pair);
         return rv;
     } else {
         qDebug() << "Invalid Gun Object";

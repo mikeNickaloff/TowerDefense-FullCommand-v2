@@ -3,6 +3,8 @@ import QtQuick.Window 2.2
 import com.towerdefense.fullcommand 2.0
 import QtQuick.Particles 2.0
 import QtQuick.Layouts 1.3
+import QtQuick.Controls 1.3
+import QtQuick.Dialogs 1.2
 import "src_js/logic.js" as Logic
 Window {
     visible: true
@@ -26,6 +28,13 @@ Window {
 
 
     }
+
+
+
+
+
+
+
     TowerUpgradeMenu {
         id: towerUpgradeMenu
         height: 480
@@ -33,9 +42,14 @@ Window {
         anchors.right: background.right
         z: 100
         opacity: 0
+
         property Gun gun
         signal upgradeRange(Gun i_gun)
         signal upgradeDamage(Gun i_gun)
+        function set_next_levels(range_new_level, damage_new_level) {
+            rangeButtonText.text = "Range -> [" + range_new_level + "]";
+            damageButtonText.text = "Damage -> [" + damage_new_level + "]";
+        }
 
         Column {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -53,6 +67,8 @@ Window {
                 }
             }
             Rectangle {
+
+
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
@@ -66,7 +82,7 @@ Window {
                 color: "lightblue"; radius: 10.0
                 width: 300; height: 50;
 
-                Text { anchors.centerIn: parent
+                Text { id: rangeButtonText; anchors.centerIn: parent
                     font.pointSize: 15; text: "Range" } }
 
             Rectangle {
@@ -82,7 +98,7 @@ Window {
                 id: damageButton
                 color: "gold"; radius: 10.0
                 width: 300; height: 50
-                Text { anchors.centerIn: parent
+                Text { id:damageButtonText; anchors.centerIn: parent
                     font.pointSize: 15; text: "Damage" } }
             Rectangle {
                 MouseArea {
@@ -96,6 +112,9 @@ Window {
                 width: 300; height: 50
                 Text { anchors.centerIn: parent
                     font.pointSize: 15; text: "Hide Menu" } }
+
+
+
         }
     }
 
@@ -122,7 +141,7 @@ Window {
             var gu = i_gun;
 
             var rangeLowAcc = gu.rangeLowAccuracy;
-            rangeLowAcc += gu.upgradeRangeAmount;
+            rangeLowAcc *= gu.upgradeRangeAmount;
             var squ = i_gun;
             var sqvis = i_gun.gunVisual;
             var gugunVisual = sqvis;
@@ -172,12 +191,14 @@ Window {
             }
             gu.gunVisual.availableTargetSquares = gugunVisualavailableTargetSquares;
             gu.rangeLowAccuracy = rangeLowAcc;
-
+            var damage_new_level = towerUpgradeMenu.gun.damageLowAccuracy * towerUpgradeMenu.gun.upgradeDamageAmount;
+            var range_new_level = towerUpgradeMenu.gun.rangeLowAccuracy * towerUpgradeMenu.gun.upgradeRangeAmount;
+            towerUpgradeMenu.set_next_levels(range_new_level, damage_new_level);
 
 
         }
         function upgrade_damage(i_gun) {
-            i_gun.damageLowAccuracy = i_gun.damageLowAccuracy + i_gun.upgradeDamageAmount;
+            i_gun.damageLowAccuracy = i_gun.damageLowAccuracy * i_gun.upgradeDamageAmount;
             for (var i=0; i<i_gun.gunVisual.ammo.length; i++) {
                 var tmp_ammo = i_gun.gunVisual.ammo[i];
                 var tmp_bullet = i_gun.gunVisual.bullets[i];
@@ -192,6 +213,9 @@ Window {
                 }
 
             }
+            var damage_new_level = towerUpgradeMenu.gun.damageLowAccuracy * towerUpgradeMenu.gun.upgradeDamageAmount;
+            var range_new_level = towerUpgradeMenu.gun.rangeLowAccuracy * towerUpgradeMenu.gun.upgradeRangeAmount;
+            towerUpgradeMenu.set_next_levels(range_new_level, damage_new_level);
         }
     }
 
@@ -420,6 +444,7 @@ Window {
             squ.set_attackerVisual(dynamicObject);
             squ.attackerVisual.attackerPathFinished.connect(handleAttackerReachedEnd);
             squ.attackerVisual.show_particles.connect(particleOverlay.customEmit);
+            squ.attackerVisual.show_particles.connect(particleOverlay.flashEmit);
             squ.attackerVisual.removeAttacker.connect(removeAttacker);
 
 
@@ -471,7 +496,7 @@ Window {
 
             var gunObjgunVisual = gunObj.gunVisual;
 
-            var newObj = component.createObject(background, { "origin_x" : gunObjgunVisual.x , "origin_y" : gunObjgunVisual.y, "ctx" : 0, "cty" : 0, "speed" : 20, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : 10, "max_damage" : gunObj.damageLowAccuracy, "min_damage" : gunObj.damageLowAccuracy, "possibleHitSquares" : gunObjgunVisual.availableTargetSquares, "target_x" : target_x, "target_y" : target_y, "finito" : false, "opacity" : 0 } );
+            var newObj = component.createObject(background, { "origin_x" : gunObjgunVisual.x + (gunObjgunVisual.width * 0.5) , "origin_y" : gunObjgunVisual.y  + (gunObjgunVisual.height * 0.5), "ctx" : 0, "cty" : 0, "speed" : 20, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : gunObjgunVisual.width, "max_damage" : gunObj.damageLowAccuracy, "min_damage" : gunObj.damageLowAccuracy, "possibleHitSquares" : gunObjgunVisual.availableTargetSquares, "target_x" : target_x, "target_y" : target_y, "finito" : false, "opacity" : 0 } );
             newObj.width = (background.width / game.board.colCount) * 0.30;
             newObj.height = (background.height / game.board.rowCount) * 0.3;
             newObj.x = gunObjgunVisual.x + (gunObjgunVisual.width * 0.5);
@@ -481,7 +506,7 @@ Window {
 
             gunObj.gunVisual.add_ammo_round(newObj);
 
-            newObj.arrivedAtTarget.connect(handleProjectileArrival);
+            //newObj.arrivedAtTarget.connect(handleProjectileArrival);
             newObj.arrivedAtTarget.connect(gunObjgunVisual.check_projectiles);
             //newObj.finitoChanged.connect(gunObjgunVisual.check_projectiles);
 
@@ -497,7 +522,7 @@ Window {
         var hit_attacker = false;
 
 
-/*
+        /*
         for (var c=0; c<attackerObjects.length; c++) {
             var obj = attackerObjects[c].attackerVisual;
 
@@ -610,7 +635,7 @@ Window {
             enemyCount++;
 
             if (enemyCount == 0) { init_attackers(); } else {
-                game.board.lastSpawnedAttacker.health = (Math.pow(15, 0.5 + (game.level * 0.25)));
+                game.board.lastSpawnedAttacker.health = (30 * (game.level * 1.75));
                 create_atttacker(game.board.lastSpawnedAttacker);
 
 
@@ -621,7 +646,7 @@ Window {
                 waveCount++;
                 if (waveCount > numWavesPerLevel) { waveCount = 0; game.level = game.level + 1; console.log("Game level is now " + game.level); }
                 timerCreateEnemy.stop();
-            //    timerSpawn.start();
+                //    timerSpawn.start();
 
 
             }
@@ -642,6 +667,14 @@ Window {
             fire_weapons(rotO);
             rotO++;
             stopO++;
+            if (((rotO % 3) == 0) || (rotO == 0)) {
+                if (game.board.attackers.length == 0) {
+                    for (var s=0; s<game.board.squares.length; s++) {
+                        var sq = game.board.squares[s];
+                        sq.squareVisual.isActiveTarget = false;
+                    }
+                }
+            }
 
             /* if (stopO > game.board.guns.length) { stopO = game.board.guns.length; }
 
@@ -739,18 +772,23 @@ Window {
 
                                         create_gun(obj.square.row, obj.square.col);
                                     } else {
-                                        towerUpgradeMenu.opacity = 1.0;
-                                        towerUpgradeMenu.gun = game.board.find_gun(obj.square.row, obj.square.col);
-                                        towerUpgradeMenu.enabled = true;
-                                        console.log("setting upgrade menu gun to " + towerUpgradeMenu.gun);
-                                        // display  TowerUpgradeMenu
-
+                                        var tmp_chk = game.board.check_for_gun_placement(obj.square);
+                                        if (tmp_chk == true) {
+                                            towerUpgradeMenu.opacity = 1.0;
+                                            towerUpgradeMenu.gun = game.board.find_gun(obj.square.row, obj.square.col);
+                                            towerUpgradeMenu.enabled = true;
+                                            var damage_new_level = towerUpgradeMenu.gun.damageLowAccuracy * towerUpgradeMenu.gun.upgradeDamageAmount;
+                                            var range_new_level = towerUpgradeMenu.gun.rangeLowAccuracy * towerUpgradeMenu.gun.upgradeRangeAmount;
+                                            towerUpgradeMenu.set_next_levels(range_new_level, damage_new_level);
+                                            console.log("setting upgrade menu gun to " + towerUpgradeMenu.gun);
+                                            // display  TowerUpgradeMenu
+                                        }
 
                                     }
                                 }
 
                                 timerSpawn.running = true;
-                                  timerCreateEnemy.start();
+                                timerCreateEnemy.start();
 
 
                             }
@@ -849,6 +887,83 @@ Window {
                 obj.go();
             }
             //! [0]
+        }
+
+        function flashEmit(x, y) {
+            var obj = flashParticle.createObject(particleOverlay);
+            obj.x = x;
+            obj.y = y;
+            obj.enabled = true;
+        }
+
+        ImageParticle {
+            objectName: "asdf"
+            groups: ["asdf"]
+            source: "./src_qml/images/particles/particle.png"
+            color: "#e3d253"
+            colorVariation: 0
+            alpha: 0.8
+            alphaVariation: 0.4
+            redVariation: 0.2
+            greenVariation: 0
+            blueVariation: 0
+            rotation: 11
+            rotationVariation: 10
+            autoRotation: false
+            rotationVelocity: 6
+            rotationVelocityVariation: 8
+            entryEffect: ImageParticle.Scale
+            system: sys
+        }
+
+
+        Component {
+
+            id: flashParticle
+
+            Emitter {
+                id: flashContainer
+                objectName: "asdf"
+                x: 219
+                y: 101
+                width: 17
+                height: 23
+                enabled: false
+                group: "asdf"
+                emitRate: 1
+                maximumEmitted: 22
+                startTime: 0
+                lifeSpan: 100
+                lifeSpanVariation: 100
+                size: 41
+                sizeVariation: 5
+                endSize: 122
+                velocityFromMovement: 0
+                system: sys
+                velocity:
+                    PointDirection {
+                    x: 0
+                    xVariation: 0
+                    y: 0
+                    yVariation: 0
+                }
+                acceleration:
+                    PointDirection {
+                    x: 0
+                    xVariation: 0
+                    y: 0
+                    yVariation: 0
+                }
+                shape:
+                    RectangleShape {}
+
+                Timer {
+                    interval: lifeSpan
+                    running: true
+                    onTriggered: flashContainer.destroy();
+                }
+            }
+
         }
 
     }

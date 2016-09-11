@@ -24,6 +24,7 @@ Item {
     property Game game;
     property Square i_square;
 
+
     signal show_particles(var xPos, var yPos);
     signal removeAttacker(var attacker);
 
@@ -33,7 +34,7 @@ Item {
 
     function projectile_hit(min_damage, max_damage, splash_distance) {
         if (viz) {
-            viz.show_particles(endX, endY);
+            viz.show_particles(endX + Math.random() * splash_distance, endY + Math.random() * splash_distance);
 
             if (attacker != null) {
                 var attackerHealth = attacker.health;
@@ -42,6 +43,7 @@ Item {
                     viz.removeAttacker(attacker);
 
                 }
+                attacker.health = attackerHealth;
             }
         }
     }
@@ -49,10 +51,11 @@ Item {
     ParallelAnimation {
         running: true;
         id: anim1
-        NumberAnimation {  target: viz; property: "x"; from: startX; to:  endX; duration: (Math.abs(viz.x - endX) / attacker.speed) * 100 }
-        NumberAnimation {  target: viz;  property: "y";  from: startY; to: endY; duration: (Math.abs(viz.y - endY) / attacker.speed) * 100 }
-        onStopped: {
 
+        NumberAnimation {  target: viz; property: "x"; from: startX; to:  endX; duration: (Math.abs(viz.x - endX) / attacker.speed) * 150 }
+        NumberAnimation {  target: viz;  property: "y";  from: startY; to: endY; duration: (Math.abs(viz.y - endY) / attacker.speed) * 150 }
+
+       onStopped: {
 
 
             attacker.next_target();
@@ -64,7 +67,7 @@ Item {
             var attackertargetsquareVisual = attackertarget.squareVisual;
             var attackercurrentsquareVisual = attackercurrent.squareVisual
 
-            attackertargetsquareVisual.projectile_hit.connect(projectile_hit);
+            attackertargetsquareVisual.projectile_hit.connect(viz.projectile_hit);
 
 
             attackertargetsquareVisual.isActiveTarget = true;
@@ -99,6 +102,7 @@ Item {
 
                     attacker.next_target();
                     attacker.target.squareVisual.projectile_hit.connect(projectile_hit);
+                    restart();
 
                 } else {
 
@@ -108,19 +112,21 @@ Item {
 
             } else {
                 // dont worry about it
-
+                if (attacker.speed > 0) {
+                    startX = endX;
+                    startY = endY;
+                    endX = attackertargetsquareVisual.x
+                    endY = attackertargetsquareVisual.y
+                    attackertargetsquareVisual.distanceToEnd = attacker.distanceToEnd;
+                    //  startAnim();
+                    restart();
+                } else {
+                    attacker.target.squareVisual.projectile_hit.disconnect(viz.projectile_hit);
+                    attackerPathFinished(attacker);
+                }
             }
 
-            if (attacker.speed > 0) {
-                startX = endX;
-                startY = endY;
-                endX = attackertargetsquareVisual.x
-                endY = attackertargetsquareVisual.y
-                attackertargetsquareVisual.distanceToEnd = attacker.distanceToEnd;
-                startAnim();
-            } else {
-                attackerPathFinished(attacker);
-            }
+
 
             //  attacker.target = attackertarget;
             // attacker.current = attackercurrent;
