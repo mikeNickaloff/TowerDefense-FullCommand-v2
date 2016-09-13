@@ -30,6 +30,138 @@ Window {
     }
 
 
+    function create_tower_chooser() {
+        towerChooser.visible = true;
+        towerChooser.enable = true;
+    }
+        TowerChooser {
+            id: towerChooser
+            z: 105
+            width: 120
+            height: 500
+            visible: false
+            enabled: false
+            anchors.right: background.right
+            ListModel {
+                id:  gunShopModel
+                ListElement {
+                    gunType: 1
+                    gunLabel: "Turret"
+                    gunDamage: 10
+                    gunRange: 200
+                    gunRangeHighAccuracy: 0.75
+                    gunDamageHighAccuracy: 1.25
+                    gunMaxOffsetHighAccuracy: 5
+
+                    gunRangeLowAccuracy: 1.25
+                    gunDamageLowAccuracy: 0.75
+                    gunMaxOffsetLowAccuracy: 30
+
+                    gunFireDelay: 700
+
+                    gunProjectileSpeed: 20
+                    // double turnRate;
+
+                    gunAttacksAir: true
+                    gunAttacksGround: true
+                    //bool slowOnHit;
+
+                    //double slowPct;
+                    //int slowTime;
+
+                    gunSplashRadius: 30
+                    gunProximityDistance: 20
+
+                    gunUpgradeRangeAmountMultiplier: 1.15
+                    gunUpgradeRangeCostMultiplier: 3
+                    gunUpgradeRangeCost: 10
+
+
+                    gunUpgradeDamageAmountMultiplier: 1.6
+                    gunUpgradeDamageCostMultiplier: 2
+                    gunUpgradeDamageCost: 10
+
+
+                    //  double upgradeProjectileSpeedAmount;
+                    //        double upgradeProjectileSpeedCost;
+
+                    gunMaxUpgradeLevel: 10
+
+                    gunRangeLevel: 1
+                    gunDamageLevel: 1
+                }
+            }
+
+
+
+            Component {
+                id: gunShopDelegate
+                Item {
+
+                    Column {
+                        Image {
+                            id: gunShopImage
+
+                            source: "src_qml/images/guns/" + gunType + ".png"
+
+                            width: 64
+                            height: 64
+                        }
+                        Text {
+                            id: textGunLabel
+                            anchors.top: gunShopImage.bottom
+                            text: gunLabel;
+
+                        }
+                        Text {
+                            id: textGunDamageLabel
+                            anchors.top: textGunLabel.bottom
+                            text: "Damage: " + gunDamage
+
+                        }
+                        Text {
+                            id: textGunRangeLabel
+                            anchors.top: textGunDamageLabel.bottom
+                            text: "Range:  " + gunRange
+                        }
+                        Button {
+                            anchors.top: textGunRangeLabel.bottom
+                            id: buttonAddThis
+                            text: "Add to Board"
+                            onClicked: {
+
+                                console.log(gunShopModel.get(0).gunType);
+
+                            }
+                        }
+
+                    }
+                }
+            }
+            Rectangle {
+            color: "white"
+            width: 175
+            height: 400
+            z: 100
+
+
+            ListView {
+                width: parent.width
+                height: parent.height
+                z: 105
+
+
+                anchors.centerIn: parent
+                id: gunShopView
+                model: gunShopModel
+                delegate: gunShopDelegate
+
+
+            }
+            }
+        }
+
+
 
 
 
@@ -42,6 +174,12 @@ Window {
         anchors.right: background.right
         z: 100
         opacity: 0
+        onVisibleChanged: {
+            if (visible == true) {
+             towerChooser.visible = false;
+                towerChooser.enabled = false;
+            }
+        }
 
         property Gun gun
         signal upgradeRange(Gun i_gun)

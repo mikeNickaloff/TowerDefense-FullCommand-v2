@@ -492,5 +492,86 @@ void Board::add_path_data(QVariant c1, QVariant r1) {
     }
 }
 
+void Board::placeGun2(int row, int col, int gunType, double gunDamage, double gunRange, double gunRangeHighAccuracy, double gunDamageHighAccuracy, double gunMaxOffsetHighAccuracy, double gunRangeLowAccuracy, double gunDamageLowAccuracy, double gunMaxOffsetLowAccuracy, double gunFireDelay, double gunProjectileSpeed, bool gunAttacksAir, bool gunAttacksGround, bool gunSplashRadius, double gunProximityDistance, double gunUpgradeRangeAmountMultiplier, double gunUpgradeRangeCostMultiplier, double gunUpgradeRangeCost, double gunUpgradeDamageAmountMultiplier, double gunUpgradeDamageCostMultiplier, double gunUpgradeDamageCost, int gunMaxUpgradeLevel, int gunRangeLevel, int gunDamageLevel)
+{
+
+
+if (!is_neighbor_of_start(row, col)) {
+
+  bool valid_placement = true;
+
+  QPair<int, int> pair = qMakePair(row, col);
+  if (m_guns.contains(pair)) { valid_placement = false; this->m_lastGunPlacementValid = QVariant::fromValue(false); this->m_needBestPathUpdate = QVariant::fromValue(false); }
+  if (valid_placement) {
+
+
+      new_gun = new Gun(this);
+      QPair<int, int> pair = qMakePair(row, col);
+      m_guns[pair] = new_gun;
+      new_gun->m_row = row;
+      new_gun->m_col = col;
+      new_gun->gunType = gunType;
+
+      new_gun->gunAttacksAir = gunAttacksAir;
+      new_gun->gunAttacksGround = gunAttacksGround;
+      new_gun->gunDamage = gunDamage;
+      new_gun->gunDamageHighAccuracy = gunDamageHighAccuracy;
+      new_gun->gunDamageLevel = gunDamageLevel;
+      new_gun->gunDamageLowAccuracy = gunDamageLowAccuracy;
+      new_gun->gunFireDelay = gunFireDelay;
+      new_gun->gunMaxOffsetHighAccuracy = gunMaxOffsetHighAccuracy;
+      new_gun->gunMaxOffsetLowAccuracy = gunMaxOffsetLowAccuracy;
+      new_gun->gunMaxUpgradeLevel = gunMaxUpgradeLevel;
+      new_gun->gunProjectileSpeed = gunProjectileSpeed;
+      new_gun->gunProximityDistance = gunProximityDistance;
+      new_gun->gunRange = gunRange;
+      new_gun->gunRangeHighAccuracy = gunRangeHighAccuracy;
+      new_gun->gunRangeLevel = gunRangeLevel;
+      new_gun->gunRangeLowAccuracy = gunRangeLowAccuracy;
+      new_gun->gunSplashRadius = gunSplashRadius;
+      new_gun->gunUpgradeDamageAmountMultiplier = gunUpgradeDamageAmountMultiplier;
+      new_gun->gunUpgradeDamageCost = gunUpgradeDamageCost;
+      new_gun->gunUpgradeDamageCostMultiplier = gunUpgradeDamageCostMultiplier;
+      new_gun->gunUpgradeRangeAmountMultiplier = gunUpgradeRangeAmountMultiplier;
+      new_gun->gunUpgradeRangeCost = gunUpgradeRangeCost;
+      new_gun->gunUpgradeRangeCostMultiplier = gunUpgradeRangeCostMultiplier;
+
+
+      this->m_lastGunPlacementValid = QVariant::fromValue(true);
+      if (m_squares.contains(pair)) {
+          Square* tmp_sq = m_squares.value(pair);
+          if (this->m_best_path.contains(tmp_sq)) {
+              this->m_needBestPathUpdate = QVariant::fromValue(true);
+          } else {
+              this->m_needBestPathUpdate = QVariant::fromValue(false);
+          }
+      }
+      if (m_best_path.count() < 2) { this->m_needBestPathUpdate = QVariant::fromValue(true); }
+
+
+      QVariantList rv;
+      QList<Gun*> tmp_guns;
+      tmp_guns << this->m_guns.values();
+      // int u = 0;
+      //qDebug() << tmp_squares;
+      foreach (Gun* gu, tmp_guns) {
+          //        u++;
+          rv.append(QVariant::fromValue(gu));
+      }
+      v_guns.clear();
+      v_guns = rv;
+
+
+  } else {
+      this->m_needBestPathUpdate = QVariant::fromValue(false);
+      this->m_lastGunPlacementValid = QVariant::fromValue(false);
+
+
+  }
+} else {
+  this->m_lastGunPlacementValid = QVariant::fromValue(false);
+  this->m_needBestPathUpdate = QVariant::fromValue(false);
+}
+}
 
 

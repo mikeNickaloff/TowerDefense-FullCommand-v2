@@ -3,7 +3,6 @@
         <file>main.qml</file>
         <file>src_qml/SquareVisual.qml</file>
         <file>src_qml/GunVisual.qml</file>
-        <file>src_qml/images/guns/1.png</file>
         <file>src_qml/images/projectiles/1.png</file>
         <file>src_qml/images/attackers/1.png</file>
         <file>src_qml/AttackerVisual.qml</file>
@@ -34,5 +33,7 @@
         <file>src_qml/images/particles/particle2.png</file>
         <file>src_js/ProjectileWorker.js</file>
         <file>src_qml/images/particles/particle.png</file>
+        <file>src_qml/images/guns/1.png</file>
+        <file>src_qml/images/guns/2.png</file>
     </qresource>
 </RCC>

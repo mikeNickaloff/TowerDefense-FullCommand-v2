@@ -119,6 +119,19 @@ public slots:
     void removeGun(int row, int col);
     void populate_dead_ends();
 
+    void placeGun2(int row, int col, int gunType,
+                      double gunDamage, double gunRange,
+                      double gunRangeHighAccuracy, double gunDamageHighAccuracy,
+                      double gunMaxOffsetHighAccuracy, double gunRangeLowAccuracy,
+                      double gunDamageLowAccuracy, double gunMaxOffsetLowAccuracy,
+                      double gunFireDelay, double gunProjectileSpeed,
+                      bool gunAttacksAir, bool gunAttacksGround, bool gunSplashRadius,
+                      double gunProximityDistance, double gunUpgradeRangeAmountMultiplier,
+                      double gunUpgradeRangeCostMultiplier, double gunUpgradeRangeCost,
+                      double gunUpgradeDamageAmountMultiplier, double gunUpgradeDamageCostMultiplier,
+                      double gunUpgradeDamageCost, int gunMaxUpgradeLevel, int gunRangeLevel, int gunDamageLevel);
+
+
 
 
 
