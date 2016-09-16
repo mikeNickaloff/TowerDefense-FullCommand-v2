@@ -6,11 +6,13 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls 1.3
 import QtQuick.Dialogs 1.2
 import "src_js/logic.js" as Logic
+import "src_qml"
 Window {
     visible: true
     width: 640
     height: 640
-    title: qsTr("Tower Defense - Complete Command v2 - 3.9 beta")
+    title: qsTr("Tower Defense - Complete Command v2 - 5.1 beta")
+
     Item {
         id: background
         width: 640
@@ -29,138 +31,40 @@ Window {
 
     }
 
-
-    function create_tower_chooser() {
-        towerChooser.visible = true;
-        towerChooser.enable = true;
-    }
-        TowerChooser {
-            id: towerChooser
-            z: 105
-            width: 120
-            height: 500
-            visible: false
-            enabled: false
-            anchors.right: background.right
-            ListModel {
-                id:  gunShopModel
-                ListElement {
-                    gunType: 1
-                    gunLabel: "Turret"
-                    gunDamage: 10
-                    gunRange: 200
-                    gunRangeHighAccuracy: 0.75
-                    gunDamageHighAccuracy: 1.25
-                    gunMaxOffsetHighAccuracy: 5
-
-                    gunRangeLowAccuracy: 1.25
-                    gunDamageLowAccuracy: 0.75
-                    gunMaxOffsetLowAccuracy: 30
-
-                    gunFireDelay: 700
-
-                    gunProjectileSpeed: 20
-                    // double turnRate;
-
-                    gunAttacksAir: true
-                    gunAttacksGround: true
-                    //bool slowOnHit;
-
-                    //double slowPct;
-                    //int slowTime;
-
-                    gunSplashRadius: 30
-                    gunProximityDistance: 20
-
-                    gunUpgradeRangeAmountMultiplier: 1.15
-                    gunUpgradeRangeCostMultiplier: 3
-                    gunUpgradeRangeCost: 10
-
-
-                    gunUpgradeDamageAmountMultiplier: 1.6
-                    gunUpgradeDamageCostMultiplier: 2
-                    gunUpgradeDamageCost: 10
-
-
-                    //  double upgradeProjectileSpeedAmount;
-                    //        double upgradeProjectileSpeedCost;
-
-                    gunMaxUpgradeLevel: 10
-
-                    gunRangeLevel: 1
-                    gunDamageLevel: 1
-                }
-            }
-
-
-
-            Component {
-                id: gunShopDelegate
-                Item {
-
-                    Column {
-                        Image {
-                            id: gunShopImage
-
-                            source: "src_qml/images/guns/" + gunType + ".png"
-
-                            width: 64
-                            height: 64
-                        }
-                        Text {
-                            id: textGunLabel
-                            anchors.top: gunShopImage.bottom
-                            text: gunLabel;
-
-                        }
-                        Text {
-                            id: textGunDamageLabel
-                            anchors.top: textGunLabel.bottom
-                            text: "Damage: " + gunDamage
-
-                        }
-                        Text {
-                            id: textGunRangeLabel
-                            anchors.top: textGunDamageLabel.bottom
-                            text: "Range:  " + gunRange
-                        }
-                        Button {
-                            anchors.top: textGunRangeLabel.bottom
-                            id: buttonAddThis
-                            text: "Add to Board"
-                            onClicked: {
-
-                                console.log(gunShopModel.get(0).gunType);
-
-                            }
-                        }
-
+        Rectangle {
+            height: 20
+            width: 580
+            x: 0
+            y: 0
+            color: "transparent"
+            ScoreHUD {
+                Row {
+                    Text {
+                        text: "Money: $" + game.money
+                        width: 200
                     }
+                    Text {
+                        text: "Level: " + game.level
+                        width: 200
+                    }
+
                 }
-            }
-            Rectangle {
-            color: "white"
-            width: 175
-            height: 400
-            z: 100
-
-
-            ListView {
-                width: parent.width
-                height: parent.height
-                z: 105
-
-
-                anchors.centerIn: parent
-                id: gunShopView
-                model: gunShopModel
-                delegate: gunShopDelegate
-
-
-            }
             }
         }
 
+
+
+
+    function create_tower_chooser() {
+        towerChooser.visible = true;
+        towerChooser.enabled = true;
+        towerUpgradeMenu.visible = false;
+        towerUpgradeMenu.enabled = false;
+    }
+
+    TowerChooserVisual {
+        id: towerChooser;
+    }
 
 
 
@@ -170,13 +74,13 @@ Window {
     TowerUpgradeMenu {
         id: towerUpgradeMenu
         height: 480
-        width: 240
+        width: 270
         anchors.right: background.right
         z: 100
         opacity: 0
         onVisibleChanged: {
             if (visible == true) {
-             towerChooser.visible = false;
+                towerChooser.visible = false;
                 towerChooser.enabled = false;
             }
         }
@@ -185,8 +89,12 @@ Window {
         signal upgradeRange(Gun i_gun)
         signal upgradeDamage(Gun i_gun)
         function set_next_levels(range_new_level, damage_new_level) {
-            rangeButtonText.text = "Range -> [" + range_new_level + "]";
-            damageButtonText.text = "Damage -> [" + damage_new_level + "]";
+            var gu = towerUpgradeMenu.gun;
+            var rangeCost = gu.gunUpgradeRangeCost * gu.gunUpgradeRangeCostMultiplier * (gu.gunRangeLevel + 1);
+            rangeButtonText.text = "Range -> [" + Math.round(range_new_level) + "] Cost: $" + Math.round(rangeCost);
+            var damageCost = gu.gunUpgradeDamageCost * gu.gunUpgradeDamageCostMultiplier * (gu.gunDamageLevel + 1);
+            damageButtonText.text = "Damage -> [" + Math.round(damage_new_level) + "] Cost: $" + Math.round(damageCost);
+
         }
 
         Column {
@@ -210,34 +118,45 @@ Window {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
+                        var gu = towerUpgradeMenu.gun;
+                        var rangeCost = gu.gunUpgradeRangeCost * gu.gunUpgradeRangeCostMultiplier * (1 + gu.gunRangeLevel);
+                        if (game.money > rangeCost) {
                         towerUpgradeMenu.upgradeRange(towerUpgradeMenu.gun);
                         rangeButton.color = "gray";
-                        fixUpgradeMenuColors.start();
+                        fixUpgradeMenuColors.running = true;
+                        } else {
+
+
+                        }
 
                     }
                 }
                 id: rangeButton
-                color: "lightblue"; radius: 10.0
-                width: 300; height: 50;
+                color: "lightblue"; radius: 2.0
+                width: 300; height: 30;
 
                 Text { id: rangeButtonText; anchors.centerIn: parent
-                    font.pointSize: 15; text: "Range" } }
+                    font.pointSize: 12; text: "Range" } }
 
             Rectangle {
 
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
+                        var gu = towerUpgradeMenu.gun;
+                         var damageCost = gu.gunUpgradeDamageCost * gu.gunUpgradeDamageCostMultiplier * (gu.gunDamageLevel + 1);
+                        if (damageCost < game.money) {
                         towerUpgradeMenu.upgradeDamage(towerUpgradeMenu.gun);
                         damageButton.color = "gray";
-                        fixUpgradeMenuColors.start();
+                        fixUpgradeMenuColors.running = true;
+                        }
                     }
                 }
                 id: damageButton
-                color: "gold"; radius: 10.0
-                width: 300; height: 50
+                color: "darkgreen"; radius: 2.0
+                width: 300; height: 30
                 Text { id:damageButtonText; anchors.centerIn: parent
-                    font.pointSize: 15; text: "Damage" } }
+                    font.pointSize: 12; text: "Damage" } }
             Rectangle {
                 MouseArea {
                     anchors.fill: parent
@@ -246,15 +165,16 @@ Window {
                         towerUpgradeMenu.opacity = 0;
                     }
                 }
-                color: "lightgreen"; radius: 10.0
-                width: 300; height: 50
+                color: "lightgreen"; radius: 0
+                width: 300; height: 30
                 Text { anchors.centerIn: parent
-                    font.pointSize: 15; text: "Hide Menu" } }
+                    font.pointSize: 12; text: "Close" } }
 
 
 
         }
     }
+
 
     Game {
         id: game
@@ -266,10 +186,15 @@ Window {
             towerUpgradeMenu.upgradeRange.connect(upgrade_range);
             towerUpgradeMenu.upgradeDamage.connect(upgrade_damage);
             towerUpgradeMenu.enabled = false;
+            game.board.spent_cash.connect(cash_spent);
 
         }
         property var grid;
         property var finder;
+        property var money: 500
+
+        function cash_spent(amount) { money -= amount; }
+
         function upgrade_range(i_gun) {
 
 
@@ -280,6 +205,8 @@ Window {
 
             var rangeLowAcc = gu.rangeLowAccuracy;
             rangeLowAcc *= gu.upgradeRangeAmount;
+            var rangeCost = gu.gunUpgradeRangeCost * gu.gunUpgradeRangeCostMultiplier * gu.gunRangeLevel;
+
             var squ = i_gun;
             var sqvis = i_gun.gunVisual;
             var gugunVisual = sqvis;
@@ -329,6 +256,8 @@ Window {
             }
             gu.gunVisual.availableTargetSquares = gugunVisualavailableTargetSquares;
             gu.rangeLowAccuracy = rangeLowAcc;
+            gu.gunRangeLevel++;
+           game.cash_spent(rangeCost);
             var damage_new_level = towerUpgradeMenu.gun.damageLowAccuracy * towerUpgradeMenu.gun.upgradeDamageAmount;
             var range_new_level = towerUpgradeMenu.gun.rangeLowAccuracy * towerUpgradeMenu.gun.upgradeRangeAmount;
             towerUpgradeMenu.set_next_levels(range_new_level, damage_new_level);
@@ -337,6 +266,7 @@ Window {
         }
         function upgrade_damage(i_gun) {
             i_gun.damageLowAccuracy = i_gun.damageLowAccuracy * i_gun.upgradeDamageAmount;
+            var damageCost = i_gun.gunUpgradeDamageCost * i_gun.gunUpgradeDamageCostMultiplier * i_gun.gunDamageLevel;
             for (var i=0; i<i_gun.gunVisual.ammo.length; i++) {
                 var tmp_ammo = i_gun.gunVisual.ammo[i];
                 var tmp_bullet = i_gun.gunVisual.bullets[i];
@@ -351,6 +281,8 @@ Window {
                 }
 
             }
+            game.cash_spent(damageCost);
+            i_gun.gunDamageLevel++;
             var damage_new_level = towerUpgradeMenu.gun.damageLowAccuracy * towerUpgradeMenu.gun.upgradeDamageAmount;
             var range_new_level = towerUpgradeMenu.gun.rangeLowAccuracy * towerUpgradeMenu.gun.upgradeRangeAmount;
             towerUpgradeMenu.set_next_levels(range_new_level, damage_new_level);
@@ -362,7 +294,7 @@ Window {
     }
 
 
-    property int numFireGroups:  8;
+    property int numFireGroups:  6;
     property var squareHash: new Array(10);
     property var squareObjHash : new Array(10);
     property var gunHash: new Array(10);
@@ -448,6 +380,7 @@ Window {
                 dynamicObject.y = (background.height / game.board.rowCount) * gu.row;
                 gu.set_gunVisual(dynamicObject);
 
+
             }
 
         }
@@ -486,6 +419,8 @@ Window {
                     var max_sq_col = squ.col + Math.round(gu.rangeLowAccuracy / sqvis.width) + 1;
                     var max_sq_row = squ.row + Math.round(gu.rangeLowAccuracy / sqvis.width) + 1;
                     gu.gunVisual.isArmed = false;
+                    //gu.gunVisual.muzzle_flash.connect(particleOverlay.flashEmit);
+                    // gu.gunVisual.muzzle_flash.connect(particleOverlay.tinyEmit);
                     //fire_weapons.connect(gu.gunVisual.receive_fire_order);
                     for (var w=0; w<game.board.squares.length; w++) {
 
@@ -517,7 +452,9 @@ Window {
 
                 }
             }
-            for (var q=0; q<2; q++) {
+            var b = 2;
+            if (gu.gunType == 2) { b = 4; }
+            for (var q=0; q<b; q++) {
                 create_projectile(gu, gu.gunVisual.x, gu.gunVisual.y);
             }
 
@@ -580,9 +517,11 @@ Window {
             dynamicObject.height = (background.height / game.board.rowCount);
 
             squ.set_attackerVisual(dynamicObject);
+
+            squ.attackerVisual.show_particles_fire.connect(particleOverlay.customEmit);
+            squ.attackerVisual.show_particles_flash.connect(particleOverlay.flashEmit);
+            squ.attackerVisual.show_particles_tiny.connect(particleOverlay.tinyEmit);
             squ.attackerVisual.attackerPathFinished.connect(handleAttackerReachedEnd);
-            squ.attackerVisual.show_particles.connect(particleOverlay.customEmit);
-            squ.attackerVisual.show_particles.connect(particleOverlay.flashEmit);
             squ.attackerVisual.removeAttacker.connect(removeAttacker);
 
 
@@ -599,11 +538,14 @@ Window {
         var objattackertargetsquareVisual = objattackertarget.squareVisual;
 
 
-        objattackercurrentsquareVisual.isActiveTarget = false;
+        //objattackercurrentsquareVisual.isActiveTarget = false;
         objattackertargetsquareVisual.isActiveTarget = false;
         var attObj = attackerObject;
         var obj = attObj.attackerVisual;
-        obj.show_particles.disconnect(particleOverlay.customEmit);
+
+        obj.show_particles_fire.disconnect(particleOverlay.customEmit);
+        obj.show_particles_flash.disconnect(particleOverlay.flashEmit);
+        obj.show_particles_tiny.disconnect(particleOverlay.tinyEmit);
         obj.destroy();
         game.board.removeAttacker(attObj);
 
@@ -634,11 +576,14 @@ Window {
 
             var gunObjgunVisual = gunObj.gunVisual;
 
-            var newObj = component.createObject(background, { "origin_x" : gunObjgunVisual.x + (gunObjgunVisual.width * 0.5) , "origin_y" : gunObjgunVisual.y  + (gunObjgunVisual.height * 0.5), "ctx" : 0, "cty" : 0, "speed" : 20, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : 1, "proximity_dist" : 20, "splash_distance" : gunObjgunVisual.width, "max_damage" : gunObj.damageLowAccuracy, "min_damage" : gunObj.damageLowAccuracy, "possibleHitSquares" : gunObjgunVisual.availableTargetSquares, "target_x" : target_x, "target_y" : target_y, "finito" : false, "opacity" : 0 } );
-            newObj.width = (background.width / game.board.colCount) * 0.30;
-            newObj.height = (background.height / game.board.rowCount) * 0.3;
+            var newObj = component.createObject(background, { "origin_x" : gunObjgunVisual.x + (gunObjgunVisual.width * 0) , "origin_y" : gunObjgunVisual.y  + (gunObjgunVisual.height * 0), "ctx" : 0, "cty" : 0, "speed" : gunObj.gunProjectileSpeed, "max_dist" : gunObj.rangeLowAccuracy, "projectile_type" : gunObj.gunType, "proximity_dist" : gunObj.gunProximityDistance, "splash_distance" : gunObj.gunSplashRadius, "max_damage" : gunObj.damageLowAccuracy, "min_damage" : gunObj.damageLowAccuracy, "possibleHitSquares" : gunObjgunVisual.availableTargetSquares, "target_x" : target_x, "target_y" : target_y, "finito" : false, "opacity" : 0 } );
+            newObj.width = (background.width / game.board.colCount) * 0.30 * gunObj.gunType;
+            newObj.height = (background.height / game.board.rowCount) * 0.3 * gunObj.gunType;
+            /*
             newObj.x = gunObjgunVisual.x + (gunObjgunVisual.width * 0.5);
-            newObj.y = gunObjgunVisual.y + (gunObjgunVisual.height * 0.5);
+            newObj.y = gunObjgunVisual.y + (gunObjgunVisual.height * 0.5); */
+            newObj.x = gunObjgunVisual.x;
+            newObj.y = gunObjgunVisual.y;
             var o = 0;
 
 
@@ -753,7 +698,7 @@ Window {
 
             enemyCount = 0;
 
-            timerCreateEnemy.start();
+            timerCreateEnemy.running = true;
 
 
 
@@ -767,7 +712,7 @@ Window {
         onTriggered: {
 
 
-
+            if (timerRotateGuns.running == false) { timerRotateGuns.running = true; timerRotateGuns.repeat = true; }
 
             game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),1, 4);
             enemyCount++;
@@ -783,7 +728,7 @@ Window {
             if (enemyCount > numEnemiesPerWave) {
                 waveCount++;
                 if (waveCount > numWavesPerLevel) { waveCount = 0; game.level = game.level + 1; console.log("Game level is now " + game.level); }
-                timerCreateEnemy.stop();
+                timerCreateEnemy.running = false;
                 //    timerSpawn.start();
 
 
@@ -795,12 +740,13 @@ Window {
     property int stopO: 0;
     Timer {
         id: timerRotateGuns;
-        interval: 200
+        interval: 140
         running: true;
         repeat: true;
 
         onTriggered: function() {
             if (rotO == -1) { init_squares(); init_guns(); rotO = 0; stopO = rotO + 1; }
+            //for (var f=0; f<2; f++) {
             if (rotO > numFireGroups) { rotO = 0; stopO = 1; }
             fire_weapons(rotO);
             rotO++;
@@ -811,7 +757,12 @@ Window {
                         var sq = game.board.squares[s];
                         sq.squareVisual.isActiveTarget = false;
                     }
+
+                    timerRotateGuns.repeat = false;
+                    timerRotateGuns.running = false;
                 }
+
+                //}
             }
 
             /* if (stopO > game.board.guns.length) { stopO = game.board.guns.length; }
@@ -862,6 +813,10 @@ Window {
         function getTestArg(mx, my) {
             if (game.board.squares.length > 0) {
                 var bgch = game.board.squares;
+                towerChooser.visible = false;
+                towerChooser.enabled = false;
+                towerUpgradeMenu.visible = false;
+                towerUpgradeMenu.enabled = false;
                 for (var c=0; c<bgch.length; c++) {
                     var obj = bgch[c].squareVisual;
                     if (qmltypeof(obj, "SquareVisual")) {
@@ -872,62 +827,28 @@ Window {
                             if ((ypos >= 0) && (ypos <= obj.height)) {
                                 var mRow = obj.square.row;
                                 var mCol = obj.square.col;
-                                game.board.placeGun(obj.square.row, obj.square.col, 1);
-                                if ((game.board.needBestPathUpdate == true) && (game.board.lastGunPlacementValid == true)) {
+                                towerChooser.square = obj.square;
 
-
-
-                                    var shRoute = get_shortest_path(Math.round(game.board.colCount * 0.5),0, Math.round(game.board.colCount * 0.5), game.board.rowCount - 1);
-                                    if (shRoute[2] != null) {
-                                        game.board.clear_path_data();
-                                        //   console.log(shRoute.length + " - " + shRoute);
-                                        var q = 0;
-                                        while (shRoute[q] != null) {
-                                            game.board.add_path_data(parseInt(shRoute[q][0]),parseInt(shRoute[q][1]));
-                                            q++;
-                                            //console.log(nd);
-                                        }
-                                        create_gun(obj.square.row, obj.square.col);
-                                    } else {
-
-
-
-                                        game.board.removeGun(obj.square.row, obj.square.col);
-                                        shRoute = get_shortest_path(Math.round(game.board.colCount * 0.5),0, Math.round(game.board.colCount * 0.5), game.board.rowCount - 1);
-                                        if (shRoute[2] != null) {
-                                            game.board.clear_path_data();
-
-                                            q = 0;
-                                            while (shRoute[q] != null) {
-                                                game.board.add_path_data(parseInt(shRoute[q][0]),parseInt(shRoute[q][1]));
-                                                q++;
-                                                //console.log(nd);
-                                            }
-                                        }
-                                    }
+                                var tmp_chk = game.board.check_for_gun_placement(obj.square);
+                                if (tmp_chk == true) {
+                                    towerUpgradeMenu.opacity = 1.0;
+                                    towerUpgradeMenu.gun = game.board.find_gun(obj.square.row, obj.square.col);
+                                    towerUpgradeMenu.enabled = true;
+                                    towerUpgradeMenu.visible = true;
+                                    var damage_new_level = towerUpgradeMenu.gun.damageLowAccuracy * towerUpgradeMenu.gun.upgradeDamageAmount;
+                                    var range_new_level = towerUpgradeMenu.gun.rangeLowAccuracy * towerUpgradeMenu.gun.upgradeRangeAmount;
+                                    towerUpgradeMenu.set_next_levels(range_new_level, damage_new_level);
+                                    console.log("setting upgrade menu gun to " + towerUpgradeMenu.gun);
+                                    // display  TowerUpgradeMenu
                                 } else {
-                                    if (game.board.lastGunPlacementValid == true) {
 
-                                        create_gun(obj.square.row, obj.square.col);
-                                    } else {
-                                        var tmp_chk = game.board.check_for_gun_placement(obj.square);
-                                        if (tmp_chk == true) {
-                                            towerUpgradeMenu.opacity = 1.0;
-                                            towerUpgradeMenu.gun = game.board.find_gun(obj.square.row, obj.square.col);
-                                            towerUpgradeMenu.enabled = true;
-                                            var damage_new_level = towerUpgradeMenu.gun.damageLowAccuracy * towerUpgradeMenu.gun.upgradeDamageAmount;
-                                            var range_new_level = towerUpgradeMenu.gun.rangeLowAccuracy * towerUpgradeMenu.gun.upgradeRangeAmount;
-                                            towerUpgradeMenu.set_next_levels(range_new_level, damage_new_level);
-                                            console.log("setting upgrade menu gun to " + towerUpgradeMenu.gun);
-                                            // display  TowerUpgradeMenu
-                                        }
-
-                                    }
+                                    create_tower_chooser();
                                 }
 
-                                timerSpawn.running = true;
-                                timerCreateEnemy.start();
 
+                                /* this code to be moved to TowerChoose */
+
+                                /* end of code to move to TowerChooser */
 
                             }
                         }
@@ -974,7 +895,7 @@ Window {
                     system: sys
                     emitRate: 16
                     lifeSpan: 100
-                    size: 13
+                    size: 23
                     endSize: 8
                     velocity: AngleDirection {angleVariation:360; magnitude: 30}
                 }
@@ -983,14 +904,14 @@ Window {
                 property real targetX: 0
                 property real targetY: 0
                 function go() {
-                    xAnim.start();
-                    yAnim.start();
+                    xAnim.running = true;
+                    yAnim.running = true;
                     container.enabled = true
                 }
                 system: sys
                 emitRate: 64
                 lifeSpan: 300
-                size: 24
+                size: 34
                 endSize: 2
                 NumberAnimation on x {
                     id: xAnim;
@@ -1014,10 +935,10 @@ Window {
 
         function customEmit(x,y) {
             //! [0]
-            for (var i=0; i<5; i++) {
+            for (var i=0; i<3; i++) {
                 var obj = emitterComp.createObject(particleOverlay);
-                obj.x = x
-                obj.y = y
+                obj.x = x + 20
+                obj.y = y + 20
                 obj.targetX = Math.random() * 24 - 12 + obj.x
                 obj.targetY = Math.random() * 24 - 12 + obj.y
                 obj.life = Math.round(Math.random() * 24) + 200
@@ -1029,6 +950,12 @@ Window {
 
         function flashEmit(x, y) {
             var obj = flashParticle.createObject(particleOverlay);
+            obj.x = x;
+            obj.y = y;
+            obj.enabled = true;
+        }
+        function tinyEmit(x, y) {
+            var obj = tinyParticle.createObject(particleOverlay);
             obj.x = x;
             obj.y = y;
             obj.enabled = true;
@@ -1062,20 +989,20 @@ Window {
             Emitter {
                 id: flashContainer
                 objectName: "asdf"
-                x: 219
-                y: 101
+                x: 40
+                y: 40
                 width: 17
                 height: 23
                 enabled: false
                 group: "asdf"
-                emitRate: 1
-                maximumEmitted: 22
+                emitRate: 12
+                maximumEmitted: 1
                 startTime: 0
-                lifeSpan: 100
-                lifeSpanVariation: 100
-                size: 41
-                sizeVariation: 5
-                endSize: 122
+                lifeSpan: 150
+                lifeSpanVariation: 150
+                size: 20
+                sizeVariation: 10
+                endSize: 40
                 velocityFromMovement: 0
                 system: sys
                 velocity:
@@ -1101,6 +1028,64 @@ Window {
                     onTriggered: flashContainer.destroy();
                 }
             }
+
+        }
+
+
+        ImageParticle {
+            objectName: "tiny"
+            groups: ["tiny"]
+            source: "./src_qml/images/particles/tracer.png"
+            color: "#9e8c22"
+            colorVariation: 0
+            alpha: 0.4
+            alphaVariation: 0.2
+            redVariation: 0
+            greenVariation: 0
+            blueVariation: 0
+            rotation: 5
+            rotationVariation: 10
+            autoRotation: false
+            rotationVelocity: 0
+            rotationVelocityVariation: 0
+            entryEffect: ImageParticle.None
+            system: sys
+        }
+        Component {
+            id: tinyParticle
+            Emitter {
+                id: tinyContainer
+                objectName: "tiny"
+                x: 192
+                y: 131
+                width: 4
+                height: 11
+                enabled: true
+                group: "tiny"
+                emitRate: 19
+                maximumEmitted: 2
+                startTime: 10
+                lifeSpan: 120
+                lifeSpanVariation: 50
+                size: 3
+                sizeVariation: 2
+                endSize: 13
+                velocityFromMovement: 0
+                system: sys
+                velocity:
+                    CumulativeDirection {}
+                acceleration:
+                    CumulativeDirection {}
+                shape:
+                    RectangleShape {}
+
+                Timer {
+                    interval: lifeSpan
+                    running: true
+                    onTriggered: tinyContainer.destroy();
+                }
+            }
+
 
         }
 

@@ -16,6 +16,10 @@ Item {
     property int fireGroup: 0
     property bool isArmed: false
 
+    function centerX() { return x + (width * 0.5); }
+    function centerY() { return y + (height * 0.5); }
+
+
     Rectangle {
 
 
@@ -33,9 +37,10 @@ Item {
 
     signal request_connect(Gun i_gun);
     signal request_disconnect(Gun i_gun);
+    signal muzzle_flash(var x, var y);
     function receive_fire_order(i_fire_group) {
 
-        if ((isArmed == true) && (parseInt(i_fire_group) == fireGroup)) {
+        if (((isArmed == true) && (gun.gunType == 2) && ((i_fire_group % 2) == 0)) || ((isArmed == true) && (parseInt(i_fire_group) == fireGroup))) {
             if (next_fire < Date.now()) {
                 if (closest_sq != null) {
                     //console.log("Order received -- assigning closest_sq props to tmp vars");
@@ -46,9 +51,9 @@ Item {
                     var _width = width;
                     if (closest_sqsquareVisual.isActiveTarget == true) {
                         //create_projectile(gunP, gunObj.closest_sq.squareVisual.x + (gunObj.width * 0.5), gunObj.closest_sq.squareVisual.y + (gunObj.height * 0.5));
-                        fire_projectile(closest_sqsquareVisualx + (_width * 0.5), closest_sqsquareVisualy + (_height * 0.5), closest_sqsquareVisual);
+                        fire_projectile(closest_sqsquareVisualx + ((gun.gunMaxOffsetLowAccuracy * 0.5) - (2 * Math.random() * gun.gunMaxOffsetLowAccuracy)), closest_sqsquareVisualy + ((gun.gunMaxOffsetLowAccuracy * 0.5) - (2 * Math.random() * gun.gunMaxOffsetHighAccuracy)), closest_sqsquareVisual);
 
-                        next_fire = parseInt(Date.now() + 700);
+                        next_fire = parseInt(Date.now() + gun.gunFireDelay);
                     }
                 }
             }
@@ -67,7 +72,7 @@ Item {
         for (var c=0; c<_ammo.length; c++) {
             var bullet = _ammo[c];
             if (bullet != null) {
-                bullet.target_x = targetX;
+               bullet.target_x = targetX;
                 bullet.target_y = targetY;
                 bullet.finito = false;
                 bullet.target_squareVisual = targetSquareVisual
@@ -75,7 +80,12 @@ Item {
                 _bullets[c] = bullet;
                 bullet.opacity = 1.0;
                 _ammo[c] = null;
-                c = _ammo.length + 1;
+                //c = _ammo.length + 1;
+                if (gun.gunType == 2) {
+                    bullet.rotation = gunImage.rotation;
+                    muzzle_flash(targetX, targetY);
+                }
+                break;
 
             }
         }
@@ -91,8 +101,8 @@ Item {
                     ammo[c] = bullet;
                     bullet.opacity = 0;
                     bullets[c] = null;
-                    bullet.x = bullet.origin_x;
-                    bullet.y = bullet.origin_y;
+                    bullet.x = centerX();
+                    bullet.y = centerY();
                     c = bullets.length + 1;
                 }
             }
@@ -180,6 +190,75 @@ Item {
 
 
 
+    function isEnemyInRange(enemyX, enemyY) {
+        var radius = gun.fireRadius();
+        var dx = centerX() - enemyX;
+           var dy = centerY() - enemyY;
+           dx *= dx;
+           dy *= dy;
+           var distanceSquared = dx + dy;
+           var radiusSquared = radius * radius;
+           return distanceSquared <= radiusSquared;
+    }
+
+    function centerPoint(v1, v2) {
+        var c1 = Math.abs(v2 - v1);
+        c1 *= 0.5;
+        return Math.min(v1, v2) + c1;
+    }
+
+    function find_target2() {
+        var tmplist = game.board.attackers;
+
+        var best_length = 999999;
+        var best_attacker = null;
+        var best_cx = 0;
+        var best_cy = 0;
+        for (var i=0; i<tmplist.length; i++) {
+            var tmp_attacker = tmplist[i];
+            if ((tmp_attacker != null) && (tmp_attacker.attackerVisual != null)) {
+                var tmp_attacker_cur = tmp_attacker.current.squareVisual;
+                var tmp_attacker_target = tmp_attacker.target.squareVisual;
+                var cx = centerPoint(tmp_attacker_cur.x, tmp_attacker_target.x);
+                var cy = centerPoint(tmp_attacker_cur.y, tmp_attacker_target.y);
+                if (isEnemyInRange(cx, cy)) {
+                    if (tmp_attacker.distanceToEnd < best_length) {
+                        best_length = tmp_attacker.distanceToEnd;
+                        best_attacker = tmp_attacker;
+                        best_cx = cx;
+                        best_cy = cy;
+                    }
+                }
+
+            }
+        }
+        if (best_attacker != null) {
+            var _ammo = ammo;
+            var _bullets = bullets;
+            var bullet;
+            for (var c=0; c<_ammo.length; c++) {
+                bullet = _ammo[c];
+                if (bullet != null) {
+                    bullet.target_x = best_cx;
+                    bullet.target_y = best_cy;
+
+                }
+            }
+            for (var c=0; c<_bullets.length; c++) {
+                bullet = _bullets[c];
+                if (bullet != null) {
+                    bullet.target_x = best_cx;
+                    bullet.target_y = best_cy;
+                }
+            }
+
+            closest_sq = best_attacker.target;
+
+        }
+
+    }
+
+
     function find_target() {
          //closest_sq = null;
          //targetDistance = 5000;
@@ -187,6 +266,8 @@ Item {
         var _availableTargetSquares = availableTargetSquares;
         for (var i=0; i<_availableTargetSquares.length; i++) {
             var tmp_sq = _availableTargetSquares[i];
+
+
             if (tmp_sq != null) {
                 var tmp_sqsquareVisual = tmp_sq.squareVisual;
                 if (tmp_sqsquareVisual.isActiveTarget == true) {

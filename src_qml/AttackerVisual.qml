@@ -25,22 +25,35 @@ Item {
     property Square i_square;
 
 
-    signal show_particles(var xPos, var yPos);
+    signal show_particles_fire(var xPos, var yPos);
+    signal show_particles_flash(var xPos, var yPos);
+    signal show_particles_tiny(var xPos, var yPos);
     signal removeAttacker(var attacker);
 
     function get_shortest_path(c1, r1, c2, r2) {
         return Logic.get_shortest_path(c1, r1, c2, r2);
     }
 
-    function projectile_hit(min_damage, max_damage, splash_distance) {
+    function projectile_hit(min_damage, max_damage, splash_distance, projectile_type) {
         if (viz) {
-            viz.show_particles(endX + Math.random() * splash_distance, endY + Math.random() * splash_distance);
+            if (projectile_type == 1) {
+                viz.show_particles_flash(endX + Math.random() * splash_distance, endY + Math.random() * splash_distance);
+                //viz.show_particles_fire(endX + Math.random() * splash_distance, endY + Math.random() * splash_distance);
+
+            }
+            if (projectile_type == 2) {
+               // viz.show_particles_flash(endX + Math.random() * splash_distance, endY + Math.random() * splash_distance);
+                viz.show_particles_tiny(endX + Math.random() * splash_distance, endY + Math.random() * splash_distance);
+            }
 
             if (attacker != null) {
                 var attackerHealth = attacker.health;
                 attackerHealth -= (Math.random() * (max_damage - min_damage)) + min_damage
                 if (attackerHealth < 1) {
+                    game.money += game.level;
+                    viz.show_particles_fire(endX + Math.random() * splash_distance, endY + Math.random() * splash_distance);
                     viz.removeAttacker(attacker);
+
 
                 }
                 attacker.health = attackerHealth;
@@ -52,8 +65,8 @@ Item {
         running: true;
         id: anim1
 
-        NumberAnimation {  target: viz; property: "x"; from: startX; to:  endX; duration: (Math.abs(viz.x - endX) / attacker.speed) * 150 }
-        NumberAnimation {  target: viz;  property: "y";  from: startY; to: endY; duration: (Math.abs(viz.y - endY) / attacker.speed) * 150 }
+        XAnimator {  target: viz; from: startX; to:  endX; duration: (Math.abs(viz.x - endX) / attacker.speed) * 150 }
+        YAnimator {  target: viz;  from: startY; to: endY; duration: (Math.abs(viz.y - endY) / attacker.speed) * 150 }
 
        onStopped: {
 

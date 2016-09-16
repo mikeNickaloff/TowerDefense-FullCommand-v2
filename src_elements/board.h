@@ -93,6 +93,7 @@ signals:
     void lastSpawnedAttackerChanged(QObject* newLast);
     void needBestPathUpdateChanged(QVariant newVal);
     void lastGunPlacementValidChanged(QVariant newVal);
+    void spent_cash(int amount);
 public slots:
     void add_path_data(QVariant c1, QVariant r1);
     void clear_path_data() { m_best_path.clear(); }
@@ -129,7 +130,7 @@ public slots:
                       double gunProximityDistance, double gunUpgradeRangeAmountMultiplier,
                       double gunUpgradeRangeCostMultiplier, double gunUpgradeRangeCost,
                       double gunUpgradeDamageAmountMultiplier, double gunUpgradeDamageCostMultiplier,
-                      double gunUpgradeDamageCost, int gunMaxUpgradeLevel, int gunRangeLevel, int gunDamageLevel);
+                      double gunUpgradeDamageCost, int gunMaxUpgradeLevel, int gunRangeLevel, int gunDamageLevel, int gunCost);
 
 
 

@@ -17,6 +17,7 @@ Item {
     property var target_x;
     property var target_y;
     property bool finito: false;
+
     property SquareVisual target_squareVisual;
     id: proj
 
@@ -31,12 +32,14 @@ Item {
            id: anim1
            NumberAnimation { property: "x"; target: proj; from: origin_x; to:  target_x; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
            NumberAnimation { property: "y"; target: proj; from: origin_y; to: target_y; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
+           NumberAnimation { property: "opacity"; target: proj; from: 0; to: 1.0; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
            onStopped: {
                //target_x = x;
                //target_y = y;
              finito = true;
              arrivedAtTarget(target_x, target_y, min_damage, max_damage, splash_distance, target_squareVisual);
-               target_squareVisual.projectile_hit(min_damage, max_damage, splash_distance);
+               target_squareVisual.projectile_hit(min_damage, max_damage, splash_distance, projectile_type);
+               proj.opacity = 0;
            }
        }
     function startAnim() {

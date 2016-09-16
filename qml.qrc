@@ -35,5 +35,8 @@
         <file>src_qml/images/particles/particle.png</file>
         <file>src_qml/images/guns/1.png</file>
         <file>src_qml/images/guns/2.png</file>
+        <file>src_qml/images/particles/sparks_multi.png</file>
+        <file>src_qml/images/particles/tracer.png</file>
+        <file>src_qml/images/projectiles/2.png</file>
     </qresource>
 </RCC>

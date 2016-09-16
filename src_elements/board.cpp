@@ -492,7 +492,7 @@ void Board::add_path_data(QVariant c1, QVariant r1) {
     }
 }
 
-void Board::placeGun2(int row, int col, int gunType, double gunDamage, double gunRange, double gunRangeHighAccuracy, double gunDamageHighAccuracy, double gunMaxOffsetHighAccuracy, double gunRangeLowAccuracy, double gunDamageLowAccuracy, double gunMaxOffsetLowAccuracy, double gunFireDelay, double gunProjectileSpeed, bool gunAttacksAir, bool gunAttacksGround, bool gunSplashRadius, double gunProximityDistance, double gunUpgradeRangeAmountMultiplier, double gunUpgradeRangeCostMultiplier, double gunUpgradeRangeCost, double gunUpgradeDamageAmountMultiplier, double gunUpgradeDamageCostMultiplier, double gunUpgradeDamageCost, int gunMaxUpgradeLevel, int gunRangeLevel, int gunDamageLevel)
+void Board::placeGun2(int row, int col, int gunType, double gunDamage, double gunRange, double gunRangeHighAccuracy, double gunDamageHighAccuracy, double gunMaxOffsetHighAccuracy, double gunRangeLowAccuracy, double gunDamageLowAccuracy, double gunMaxOffsetLowAccuracy, double gunFireDelay, double gunProjectileSpeed, bool gunAttacksAir, bool gunAttacksGround, bool gunSplashRadius, double gunProximityDistance, double gunUpgradeRangeAmountMultiplier, double gunUpgradeRangeCostMultiplier, double gunUpgradeRangeCost, double gunUpgradeDamageAmountMultiplier, double gunUpgradeDamageCostMultiplier, double gunUpgradeDamageCost, int gunMaxUpgradeLevel, int gunRangeLevel, int gunDamageLevel, int gunCost)
 {
 
 
@@ -511,6 +511,17 @@ if (!is_neighbor_of_start(row, col)) {
       new_gun->m_row = row;
       new_gun->m_col = col;
       new_gun->gunType = gunType;
+      new_gun->m_gunType = gunType;
+
+
+
+      new_gun->m_rangeLowAccuracy = gunRangeLowAccuracy * gunRange;
+      new_gun->upgradeRangeAmount = gunUpgradeRangeAmountMultiplier;
+      new_gun->upgradeRangeCost = gunUpgradeRangeCost;
+      new_gun->damageLowAccuracy = gunDamageLowAccuracy * gunDamage;
+      new_gun->upgradeDamageAmount = gunUpgradeDamageAmountMultiplier;
+      this->m_lastGunPlacementValid = QVariant::fromValue(true);
+
 
       new_gun->gunAttacksAir = gunAttacksAir;
       new_gun->gunAttacksGround = gunAttacksGround;
@@ -535,6 +546,7 @@ if (!is_neighbor_of_start(row, col)) {
       new_gun->gunUpgradeRangeAmountMultiplier = gunUpgradeRangeAmountMultiplier;
       new_gun->gunUpgradeRangeCost = gunUpgradeRangeCost;
       new_gun->gunUpgradeRangeCostMultiplier = gunUpgradeRangeCostMultiplier;
+      new_gun->gunCost = gunCost;
 
 
       this->m_lastGunPlacementValid = QVariant::fromValue(true);
@@ -560,6 +572,7 @@ if (!is_neighbor_of_start(row, col)) {
       }
       v_guns.clear();
       v_guns = rv;
+      emit this->spent_cash(gunCost);
 
 
   } else {

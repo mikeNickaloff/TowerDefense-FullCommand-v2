@@ -23,6 +23,7 @@
 #include "src_ui/towerchooser.h"
 #include "src_ui/towerinfo.h"
 #include "src_ui/towerupgrademenu.h"
+#include "src_ui/scorehud.h"
 
 int main(int argc, char *argv[])
 {
@@ -40,6 +41,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<TowerChooser>("com.towerdefense.fullcommand", 2, 0, "TowerChooser");
     qmlRegisterType<TowerInfo>("com.towerdefense.fullcommand", 2, 0, "TowerInfo");
     qmlRegisterType<TowerUpgradeMenu>("com.towerdefense.fullcommand", 2, 0, "TowerUpgradeMenu");
+    qmlRegisterType<ScoreHUD>("com.towerdefense.fullcommand", 2, 0, "ScoreHUD");
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 

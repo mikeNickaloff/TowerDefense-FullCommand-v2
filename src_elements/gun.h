@@ -3,6 +3,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/qglobal.h>
+#include <QVariant>
 class Square;
 class Attacker;
 class Gun : public QObject
@@ -41,6 +42,7 @@ class Gun : public QObject
         Q_PROPERTY(int gunRangeLevel MEMBER gunRangeLevel NOTIFY gunRangeLevelChanged)
         Q_PROPERTY(int gunDamageLevel MEMBER gunDamageLevel NOTIFY gunDamageLevelChanged)
         Q_PROPERTY(double gunRange MEMBER gunRange NOTIFY gunRangeChanged)
+        Q_PROPERTY(int gunCost MEMBER gunCost NOTIFY gunCostChanged)
 
 
 public:
@@ -107,8 +109,8 @@ public:
     int projectileSpeedLevel;
 
 
-    int gunType; double gunDamage; double gunRange; double gunRangeHighAccuracy; double gunDamageHighAccuracy; double gunMaxOffsetHighAccuracy; double gunRangeLowAccuracy; double gunDamageLowAccuracy; double gunMaxOffsetLowAccuracy; double gunFireDelay; double gunProjectileSpeed; bool gunAttacksAir; bool gunAttacksGround; bool gunSplashRadius; double gunProximityDistance; double gunUpgradeRangeAmountMultiplier; double gunUpgradeRangeCostMultiplier; double gunUpgradeRangeCost; double gunUpgradeDamageAmountMultiplier; double gunUpgradeDamageCostMultiplier; double gunUpgradeDamageCost; int gunMaxUpgradeLevel; int gunRangeLevel; int gunDamageLevel;
-
+    int gunType; double gunDamage; double gunRange; double gunRangeHighAccuracy; double gunDamageHighAccuracy; double gunMaxOffsetHighAccuracy; double gunRangeLowAccuracy; double gunDamageLowAccuracy; double gunMaxOffsetLowAccuracy; double gunFireDelay; double gunProjectileSpeed; bool gunAttacksAir; bool gunAttacksGround; bool gunSplashRadius; double gunProximityDistance; double gunUpgradeRangeAmountMultiplier; double gunUpgradeRangeCostMultiplier; double gunUpgradeRangeCost; double gunUpgradeDamageAmountMultiplier; double gunUpgradeDamageCostMultiplier; double gunUpgradeDamageCost; int gunMaxUpgradeLevel; int gunRangeLevel; int gunDamageLevel; int gunCost;
+    Q_INVOKABLE QVariant fireRadius() { double rv; rv = (gunRange * gunRangeLevel); return QVariant::fromValue(rv); }
 signals:
     void rowChanged(int newRow);
     void colChanged(int newCol);
@@ -123,6 +125,7 @@ signals:
 
     void gunDamageChanged(double gunDamage);
   void gunRangeChanged(double gunRange);
+  void gunCostChanged(int gunCost);
    void gunRangeHighAccuracyChanged(double gunRangeHighAccuracy);
   void gunDamageHighAccuracyChanged(double gunDamageHighAccuracy);
    void gunMaxOffsetHighAccuracyChanged(double gunMaxOffsetHighAccuracy);

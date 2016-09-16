@@ -28,6 +28,7 @@ public:
     QQmlContext* m_context;
     QVariant m_level;
 
+
 signals:
     void boardChanged(Board &new_board);
     void levelChanged(QVariant newLevel);

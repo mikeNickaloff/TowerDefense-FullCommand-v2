@@ -28,7 +28,7 @@ Item {
             lostActiveTarget(square);
         }
     }
-    signal projectile_hit(var min_damage, var max_damage, var splash_distance);
+    signal projectile_hit(var min_damage, var max_damage, var splash_distance, var projectile_type);
 
 }
 
