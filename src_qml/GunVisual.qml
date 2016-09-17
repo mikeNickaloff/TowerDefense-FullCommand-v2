@@ -23,7 +23,11 @@ Item {
     Rectangle {
 
 
-        color: "transparent"
+        color: "black"
+        opacity: 0.7
+        border.width: 2
+        border.color: "white"
+
         width: parent.width
         height: parent.height
         id: rect
@@ -72,7 +76,7 @@ Item {
         for (var c=0; c<_ammo.length; c++) {
             var bullet = _ammo[c];
             if (bullet != null) {
-               bullet.target_x = targetX;
+                bullet.target_x = targetX;
                 bullet.target_y = targetY;
                 bullet.finito = false;
                 bullet.target_squareVisual = targetSquareVisual
@@ -122,9 +126,13 @@ Item {
         Behavior on height {
             NumberAnimation { duration: 300 }
         }
-       // Behavior on rotation {
+        Behavior on rotation {
+            NumberAnimation {  duration: 300 }
+        }
+
+        // Behavior on rotation {
         //    NumberAnimation { duration: 50 }
-       // }
+        // }
 
 
     }
@@ -166,12 +174,12 @@ Item {
     }
     function lost_active_target(i_square) {
 
-            find_target();
+        find_target3();
 
 
-      // if (closest_sq.squareVisual.isActiveTarget == false) {
-       //    targetDistance = 5000;
-       //}
+        // if (closest_sq.squareVisual.isActiveTarget == false) {
+        //    targetDistance = 5000;
+        //}
 
         /* if ((i_square == closest_sq) || (closest_sq == null)) {
             if (closest_sq == null) {
@@ -191,14 +199,14 @@ Item {
 
 
     function isEnemyInRange(enemyX, enemyY) {
-        var radius = gun.fireRadius();
+        var radius = getRange();
         var dx = centerX() - enemyX;
-           var dy = centerY() - enemyY;
-           dx *= dx;
-           dy *= dy;
-           var distanceSquared = dx + dy;
-           var radiusSquared = radius * radius;
-           return distanceSquared <= radiusSquared;
+        var dy = centerY() - enemyY;
+        dx *= dx;
+        dy *= dy;
+        var distanceSquared = dx + dy;
+        var radiusSquared = radius * radius;
+        return distanceSquared <= radiusSquared;
     }
 
     function centerPoint(v1, v2) {
@@ -258,15 +266,38 @@ Item {
 
     }
 
+function find_target3() {
+    targetDistance = 99999;
+    closest_sq = null;
+    var _availableTargetSquares = availableTargetSquares;
+    for (var i=0; i<_availableTargetSquares.length; i++) {
+        var tmp_sq = _availableTargetSquares[i];
+        if (tmp_sq.squareVisual.isActiveTarget == true) {
+            if (tmp_sq.squareVisual.distanceToEnd <= targetDistance) {
+                closest_sq = tmp_sq;
+                targetDistance = tmp_sq.squareVisual.distanceToEnd;
+            } else {
+                if (closest_sq == null) {
+                    closest_sq = tmp_sq;
+                    targetDistance = tmp_sq.squareVisual.distanceToEnd;
+                }
 
+            }
+
+        }
+    }
+
+}
     function find_target() {
-         //closest_sq = null;
-         //targetDistance = 5000;
+        //closest_sq = null;
+        //targetDistance = 5000;
         var found_enemy = false;
         var _availableTargetSquares = availableTargetSquares;
         for (var i=0; i<_availableTargetSquares.length; i++) {
             var tmp_sq = _availableTargetSquares[i];
-
+            if (closest_sq == null) {
+                closest_sq = tmp_sq;
+            }
 
             if (tmp_sq != null) {
                 var tmp_sqsquareVisual = tmp_sq.squareVisual;
@@ -287,14 +318,56 @@ Item {
 
         } */
         if (found_enemy == false) {
-           if (isArmed == true) { request_disconnect(gun); targetDistance = 99999; }
+            //if (isArmed == true) { request_disconnect(gun); targetDistance = 99999; }
         } else {
-            if (closest_sq.squareVisual.isActiveTarget == false) {
-               targetDistance = 9999;
+            if (closest_sq != null) {
+                if (closest_sq.squareVisual.isActiveTarget == false) {
+                    targetDistance = 9999;
+                    closest_sq = null;
+
+                }
+            } else {
+
             }
         }
 
     }
 
+    function getRange(rangeLevel) {
+        if (gun != null) {
+
+            var rangeVal = rangeLevel * gun.gunRange * gun.gunUpgradeRangeAmountMultiplier;
+            return rangeVal;
+
+        } else {
+            return 0;
+        }
+    }
+    function getRangeCost(rangeLevel) {
+        return getRangeUpgradeCost(rangeLevel);
+    }
+    function getDamageCost(damageLevel) {
+        return getDamageUpgradeCost(damageLevel);
+    }
+
+    function getRangeUpgradeCost(rangeLevel) {
+        var rangeCost = rangeLevel * gun.gunUpgradeRangeCostMultiplier * gun.gunUpgradeRangeCost;
+        return Math.round(rangeCost)
+    }
+    function getDamageUpgradeCost(damageLevel) {
+        var damageCost = damageLevel * gun.gunUpgradeDamageCostMultiplier * gun.gunUpgradeDamageCost;
+        return damageCost;
+    }
+
+    function getDamage(damageLevel) {
+        if (gun != null) {
+
+            var damageVal = damageLevel * gun.gunDamage * gun.gunUpgradeDamageAmountMultiplier;
+            return damageVal;
+
+        } else {
+            return 0;
+        }
+    }
 
 }

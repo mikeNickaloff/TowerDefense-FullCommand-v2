@@ -33,7 +33,7 @@ TowerChooser {
 
             gunFireDelay: 700
 
-            gunProjectileSpeed: 20
+            gunProjectileSpeed: 18
             // double turnRate;
 
             gunAttacksAir: true
@@ -46,13 +46,13 @@ TowerChooser {
             gunSplashRadius: 30
             gunProximityDistance: 20
 
-            gunUpgradeRangeAmountMultiplier: 1.15
-            gunUpgradeRangeCostMultiplier: 2
+            gunUpgradeRangeAmountMultiplier: 1.12
+            gunUpgradeRangeCostMultiplier: 4
             gunUpgradeRangeCost: 5
 
 
-            gunUpgradeDamageAmountMultiplier: 1.6
-            gunUpgradeDamageCostMultiplier: 2
+            gunUpgradeDamageAmountMultiplier: 1.87
+            gunUpgradeDamageCostMultiplier: 4
             gunUpgradeDamageCost: 5
 
 
@@ -69,7 +69,7 @@ TowerChooser {
             gunType: 2
             gunLabel: "MachineGun"
             gunDamage: 3
-            gunRange: 100
+            gunRange: 150
             gunRangeHighAccuracy: 0.95
             gunDamageHighAccuracy: 1.45
             gunMaxOffsetHighAccuracy: 15
@@ -80,7 +80,7 @@ TowerChooser {
 
             gunFireDelay: 150
 
-            gunProjectileSpeed: 32
+            gunProjectileSpeed: 24
             // double turnRate;
 
             gunAttacksAir: true
@@ -93,13 +93,13 @@ TowerChooser {
             gunSplashRadius: 5
             gunProximityDistance: 5
 
-            gunUpgradeRangeAmountMultiplier: 1.15
-            gunUpgradeRangeCostMultiplier: 2
+            gunUpgradeRangeAmountMultiplier: 1.12
+            gunUpgradeRangeCostMultiplier: 4
             gunUpgradeRangeCost: 2
 
 
-            gunUpgradeDamageAmountMultiplier: 1.6
-            gunUpgradeDamageCostMultiplier: 2
+            gunUpgradeDamageAmountMultiplier: 1.9
+            gunUpgradeDamageCostMultiplier: 4
             gunUpgradeDamageCost: 2
 
 

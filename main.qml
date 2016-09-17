@@ -11,14 +11,14 @@ Window {
     visible: true
     width: 640
     height: 640
-    title: qsTr("Tower Defense - Complete Command v2 - 5.1 beta")
+    title: qsTr("Tower Defense - Complete Command v2 - 5.2 beta")
 
     Item {
         id: background
         width: 640
-        height: 640
-        anchors.fill: parent
+        height: 620
 
+        anchors.top: hudRect.bottom
 
 
 
@@ -31,26 +31,41 @@ Window {
 
     }
 
-        Rectangle {
-            height: 20
-            width: 580
-            x: 0
-            y: 0
-            color: "transparent"
-            ScoreHUD {
-                Row {
-                    Text {
-                        text: "Money: $" + game.money
-                        width: 200
-                    }
-                    Text {
-                        text: "Level: " + game.level
-                        width: 200
-                    }
+    Rectangle {
+        id: hudRect
+        height: 20
+        width: 580
+        x: 0
+        y: 0
+        color: "transparent"
+        ScoreHUD {
+            Row {
+                Text {
+                    text: "Money: $" + game.money
+                    font.family: "Consolas"
+                    horizontalAlignment: Text.AlignHCenter
+                    style: Text.Raised
+                    font.pointSize: 12
+                    width: 200
+                    styleColor: "#0aec28"
 
+                    color: "#0aec28"
                 }
+                Text {
+                    text: "Level: " + game.level
+                    font.family: "Consolas"
+                    horizontalAlignment: Text.AlignHCenter
+                    style: Text.Raised
+                    font.pointSize: 12
+                    width: 200
+                    styleColor: "#0aec28"
+
+                    color: "#0aec28"
+                }
+
             }
         }
+    }
 
 
 
@@ -90,9 +105,9 @@ Window {
         signal upgradeDamage(Gun i_gun)
         function set_next_levels(range_new_level, damage_new_level) {
             var gu = towerUpgradeMenu.gun;
-            var rangeCost = gu.gunUpgradeRangeCost * gu.gunUpgradeRangeCostMultiplier * (gu.gunRangeLevel + 1);
+            var rangeCost = gu.gunVisual.getRangeCost(gu.gunRangeLevel + 1);
             rangeButtonText.text = "Range -> [" + Math.round(range_new_level) + "] Cost: $" + Math.round(rangeCost);
-            var damageCost = gu.gunUpgradeDamageCost * gu.gunUpgradeDamageCostMultiplier * (gu.gunDamageLevel + 1);
+            var damageCost = gu.gunVisual.getDamageCost(gu.gunDamageLevel + 1);
             damageButtonText.text = "Damage -> [" + Math.round(damage_new_level) + "] Cost: $" + Math.round(damageCost);
 
         }
@@ -119,11 +134,11 @@ Window {
                     anchors.fill: parent
                     onClicked: {
                         var gu = towerUpgradeMenu.gun;
-                        var rangeCost = gu.gunUpgradeRangeCost * gu.gunUpgradeRangeCostMultiplier * (1 + gu.gunRangeLevel);
+                        var rangeCost = gu.gunVisual.getRangeCost(1 + gu.gunRangeLevel);
                         if (game.money > rangeCost) {
-                        towerUpgradeMenu.upgradeRange(towerUpgradeMenu.gun);
-                        rangeButton.color = "gray";
-                        fixUpgradeMenuColors.running = true;
+                            towerUpgradeMenu.upgradeRange(towerUpgradeMenu.gun);
+                            rangeButton.color = "gray";
+                            fixUpgradeMenuColors.running = true;
                         } else {
 
 
@@ -144,11 +159,11 @@ Window {
                     anchors.fill: parent
                     onClicked: {
                         var gu = towerUpgradeMenu.gun;
-                         var damageCost = gu.gunUpgradeDamageCost * gu.gunUpgradeDamageCostMultiplier * (gu.gunDamageLevel + 1);
+                        var damageCost = gu.gunVisual.getDamageCost(gu.gunDamageLevel + 1);
                         if (damageCost < game.money) {
-                        towerUpgradeMenu.upgradeDamage(towerUpgradeMenu.gun);
-                        damageButton.color = "gray";
-                        fixUpgradeMenuColors.running = true;
+                            towerUpgradeMenu.upgradeDamage(towerUpgradeMenu.gun);
+                            damageButton.color = "gray";
+                            fixUpgradeMenuColors.running = true;
                         }
                     }
                 }
@@ -203,9 +218,9 @@ Window {
 
             var gu = i_gun;
 
-            var rangeLowAcc = gu.rangeLowAccuracy;
-            rangeLowAcc *= gu.upgradeRangeAmount;
-            var rangeCost = gu.gunUpgradeRangeCost * gu.gunUpgradeRangeCostMultiplier * gu.gunRangeLevel;
+            var rangeLowAcc = gu.gunVisual.getRange(gu.gunRangeLevel) * gu.gunRangeLowAccuracy;
+            //rangeLowAcc *= gu.upgradeRangeAmount;
+            var rangeCost = gu.gunVisual.getRangeCost(gu.gunRangeLevel + 1);
 
             var squ = i_gun;
             var sqvis = i_gun.gunVisual;
@@ -241,11 +256,17 @@ Window {
                         var TL = truelength(gugunVisualx, gugunVisualy, sqElx, sqEly);
 
 
-                        if (TL < rangeLowAcc) {
+                        // if (TL < rangeLowAcc) {
+                        //if (i_gun.gunVisual.isEnemyInRange(sqElx, sqEly)) {
+                        if (TL < gu.gunVisual.getRange(gu.gunRangeLevel)) {
                             if (gugunVisualavailableTargetSquares.indexOf(sqObj) < 0) {
                                 gugunVisualavailableTargetSquares.push(sqObj);
                                 sqEl.gunsInRange.push(gu);
                                 //sqEl.isActiveTargetChanged.connect(gu.gunVisual.find_target);
+                                i_gun.gunVisual.request_connect.connect(request_connect);
+                                i_gun.gunVisual.request_disconnect.connect(request_disconnect);
+
+
                                 sqEl.becameActiveTarget.connect(gugunVisual.check_new_target);
                                 sqEl.lostActiveTarget.connect(gugunVisual.lost_active_target);
                             }
@@ -257,34 +278,37 @@ Window {
             gu.gunVisual.availableTargetSquares = gugunVisualavailableTargetSquares;
             gu.rangeLowAccuracy = rangeLowAcc;
             gu.gunRangeLevel++;
-           game.cash_spent(rangeCost);
-            var damage_new_level = towerUpgradeMenu.gun.damageLowAccuracy * towerUpgradeMenu.gun.upgradeDamageAmount;
-            var range_new_level = towerUpgradeMenu.gun.rangeLowAccuracy * towerUpgradeMenu.gun.upgradeRangeAmount;
+            game.cash_spent(rangeCost);
+            var damage_new_level = towerUpgradeMenu.gun.gunVisual.getDamage(towerUpgradeMenu.gun.gunDamageLevel + 1);
+            var range_new_level = towerUpgradeMenu.gun.gunVisual.getRange(towerUpgradeMenu.gun.gunRangeLevel + 1);
             towerUpgradeMenu.set_next_levels(range_new_level, damage_new_level);
 
 
         }
         function upgrade_damage(i_gun) {
             i_gun.damageLowAccuracy = i_gun.damageLowAccuracy * i_gun.upgradeDamageAmount;
-            var damageCost = i_gun.gunUpgradeDamageCost * i_gun.gunUpgradeDamageCostMultiplier * i_gun.gunDamageLevel;
+            var damageCost = i_gun.gunVisual.getDamageCost(i_gun.gunDamageLevel + 1);
+            game.cash_spent(damageCost);
+            i_gun.gunDamageLevel++;
+
             for (var i=0; i<i_gun.gunVisual.ammo.length; i++) {
                 var tmp_ammo = i_gun.gunVisual.ammo[i];
                 var tmp_bullet = i_gun.gunVisual.bullets[i];
                 if (tmp_ammo != null) {
-                    tmp_ammo.min_damage = i_gun.damageLowAccuracy;
-                    tmp_ammo.max_damage = i_gun.damageLowAccuracy;
+                    tmp_ammo.min_damage = i_gun.gunVisual.getDamage(i_gun.gunDamageLevel) * i_gun.gunDamageLowAccuracy;
+                    tmp_ammo.max_damage = i_gun.gunVisual.getDamage(i_gun.gunDamageLevel) * i_gun.gunDamageHighAccuracy;
 
                 }
                 if (tmp_bullet != null) {
-                    tmp_bullet.min_damage = i_gun.damageLowAccuracy;
-                    tmp_bullet.max_damage = i_gun.damageLowAccuracy;
+                    tmp_bullet.min_damage = i_gun.gunVisual.getDamage(i_gun.gunDamageLevel) * i_gun.gunDamageLowAccuracy;
+                    tmp_bullet.max_damage = i_gun.gunVisual.getDamage(i_gun.gunDamageLevel) * i_gun.gunDamageHighAccuracy;
                 }
 
             }
-            game.cash_spent(damageCost);
-            i_gun.gunDamageLevel++;
-            var damage_new_level = towerUpgradeMenu.gun.damageLowAccuracy * towerUpgradeMenu.gun.upgradeDamageAmount;
-            var range_new_level = towerUpgradeMenu.gun.rangeLowAccuracy * towerUpgradeMenu.gun.upgradeRangeAmount;
+
+
+            var damage_new_level = towerUpgradeMenu.gun.gunVisual.getDamage(towerUpgradeMenu.gun.gunDamageLevel + 1);
+            var range_new_level = towerUpgradeMenu.gun.gunVisual.getRange(towerUpgradeMenu.gun.gunRangeLevel + 1);
             towerUpgradeMenu.set_next_levels(range_new_level, damage_new_level);
         }
     }
@@ -435,7 +459,8 @@ Window {
                                 var TL = truelength(gu.gunVisual.x, gu.gunVisual.y, sqEl.x, sqEl.y);
 
 
-                                if (TL < gu.rangeLowAccuracy) {
+                                //if (TL < gu.rangeLowAccuracy) {
+                                if (TL < gu.gunVisual.getRange(gu.gunRangeLevel)) {
                                     gu.gunVisual.availableTargetSquares.push(sqObj);
                                     sqEl.gunsInRange.push(gu);
                                     gu.gunVisual.request_connect.connect(request_connect);
@@ -665,8 +690,8 @@ Window {
     }
     property int enemyCount: 0;
     property int waveCount: 0;
-    property int numEnemiesPerWave: 6
-    property int numWavesPerLevel: 2
+    property int numEnemiesPerWave: 12
+    property int numWavesPerLevel: 1
     property int curAttackerArrayStart: 0
     property int curAttackerArrayStop : 50
     property int numAttackersPerFrame: 50
@@ -712,18 +737,26 @@ Window {
         onTriggered: {
 
 
-            if (timerRotateGuns.running == false) { timerRotateGuns.running = true; timerRotateGuns.repeat = true; }
+            if (timerRotateGuns.running == false) { timerRotateGuns.running = true; timerRotateGuns.repeat = true;
+                for (var g=0; g<game.board.guns.length; g++) {
+                    var gu = game.board.guns[g];
+
+                       // request_connect(gu);
+
+                }
+
+            }
 
             game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),1, 4);
             enemyCount++;
 
-            if (enemyCount == 0) { init_attackers(); } else {
-                game.board.lastSpawnedAttacker.health = (30 * (game.level * 1.75));
-                create_atttacker(game.board.lastSpawnedAttacker);
+            /*if (enemyCount == 0) { init_attackers(); } else { */
+            game.board.lastSpawnedAttacker.health = (30 * (game.level * 1.75));
+            create_atttacker(game.board.lastSpawnedAttacker);
 
 
 
-            }
+            //}
 
             if (enemyCount > numEnemiesPerWave) {
                 waveCount++;
@@ -757,15 +790,21 @@ Window {
                         var sq = game.board.squares[s];
                         sq.squareVisual.isActiveTarget = false;
                     }
+                   // for (var g=0; g<game.board.guns.length; g++) {
+                     //   var gu = game.board.guns[g];
+                        //request_disconnect(gu);
+                       // gu.gunVisual.targetDistance = 9999
+                        // gu.gunVisual.closest_sq = null;
+                   // }
 
                     timerRotateGuns.repeat = false;
                     timerRotateGuns.running = false;
+                } else {
+
+                    //}
                 }
 
-                //}
-            }
-
-            /* if (stopO > game.board.guns.length) { stopO = game.board.guns.length; }
+                /* if (stopO > game.board.guns.length) { stopO = game.board.guns.length; }
 
             for (var t=rotO; t<stopO; t++) {
 
@@ -799,9 +838,10 @@ Window {
                 stopO = rotO + 12;
             }*/
 
-            //timerRotateGuns.start();
-        }
+                //timerRotateGuns.start();
+            }
 
+        }
     }
 
     MouseArea {
@@ -835,8 +875,8 @@ Window {
                                     towerUpgradeMenu.gun = game.board.find_gun(obj.square.row, obj.square.col);
                                     towerUpgradeMenu.enabled = true;
                                     towerUpgradeMenu.visible = true;
-                                    var damage_new_level = towerUpgradeMenu.gun.damageLowAccuracy * towerUpgradeMenu.gun.upgradeDamageAmount;
-                                    var range_new_level = towerUpgradeMenu.gun.rangeLowAccuracy * towerUpgradeMenu.gun.upgradeRangeAmount;
+                                    var damage_new_level = towerUpgradeMenu.gun.gunVisual.getDamage(towerUpgradeMenu.gun.gunDamageLevel + 1);
+                                    var range_new_level = towerUpgradeMenu.gun.gunVisual.getRange(towerUpgradeMenu.gun.gunRangeLevel + 1);
                                     towerUpgradeMenu.set_next_levels(range_new_level, damage_new_level);
                                     console.log("setting upgrade menu gun to " + towerUpgradeMenu.gun);
                                     // display  TowerUpgradeMenu
@@ -867,6 +907,7 @@ Window {
             id: testBox
             text: qsTr("Click on the grid to build towers")
             anchors.centerIn: parent
+            visible: false
         }
     }
     Item {
