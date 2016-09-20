@@ -37,6 +37,9 @@ public:
         //QQmlEngine::setObjectOwnership(m_squareVisual, QQmlEngine::JavaScriptOwnership);
     }
 
+    Q_INVOKABLE bool check_collision(int i_x, int i_y, double i_prox_dist);
+
+
 
     bool isAtEndOfPath() {
         if (m_path.count() < 2) { return true; }

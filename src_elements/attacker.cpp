@@ -6,6 +6,11 @@ Attacker::Attacker(QObject *parent) : QObject(parent)
 m_xpos = 0;
 m_ypos = 0;
 }
+
+bool Attacker::check_collision(int i_x, int i_y, double i_prox_dist)
+{
+
+}
 void Attacker::next_target() {
 
 

@@ -42,7 +42,7 @@ Item {
 
             }
             if (projectile_type == 2) {
-               // viz.show_particles_flash(endX + Math.random() * splash_distance, endY + Math.random() * splash_distance);
+                // viz.show_particles_flash(endX + Math.random() * splash_distance, endY + Math.random() * splash_distance);
                 viz.show_particles_tiny(endX + Math.random() * splash_distance, endY + Math.random() * splash_distance);
             }
 
@@ -61,14 +61,38 @@ Item {
         }
     }
 
-    ParallelAnimation {
+    function get_property_to_animate() {
+        if (startX != endX) { return "x";
+        } else {
+            if (startY != endY) {
+                return "y";
+            } else {
+                return "opacity";
+            }
+        }
+    }
+
+    function get_animation_duration() {
+        return (Math.max(Math.abs(startX - endX), Math.abs(startY - endY)) / attacker.speed) * 150;
+    }
+
+    function get_animation_start() {
+        if (startX != endX) { return startX; } else { return startY; }
+    }
+    function get_animation_end() {
+        if (startX != endX) { return endX; } else { return endY; }
+    }
+
+    SequentialAnimation {
         running: true;
         id: anim1
 
-        XAnimator {  target: viz; from: startX; to:  endX; duration: (Math.abs(viz.x - endX) / attacker.speed) * 150 }
-        YAnimator {  target: viz;  from: startY; to: endY; duration: (Math.abs(viz.y - endY) / attacker.speed) * 150 }
-
-       onStopped: {
+        PropertyAnimation { property: get_property_to_animate(); target: viz; from: get_animation_start(); to:  get_animation_end(); duration: get_animation_duration(); }
+        //YAnimator {  target: viz;  from: startY; to: endY; duration: (Math.abs(startY - endY) / attacker.speed) * 200 }
+        PauseAnimation {
+            duration: 200
+        }
+        onStopped: {
 
 
             attacker.next_target();

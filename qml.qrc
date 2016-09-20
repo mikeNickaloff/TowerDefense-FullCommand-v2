@@ -38,5 +38,11 @@
         <file>src_qml/images/particles/sparks_multi.png</file>
         <file>src_qml/images/particles/tracer.png</file>
         <file>src_qml/images/projectiles/2.png</file>
+        <file>src_qml/images/particles/rocketbacklit.png</file>
+        <file>src_qml/ScoreHUDVisual.qml</file>
+        <file>src_qml/TowerUpgradeMenuVisual.qml</file>
+        <file>src_qml/images/attackers/2.png</file>
+        <file>src_qml/images/attackers/3.png</file>
+        <file>src_qml/images/attackers/4.png</file>
     </qresource>
 </RCC>

@@ -18,6 +18,11 @@ Item {
 
 
     }
+
+
+    function centerX() { return x + (width * 0.5); }
+    function centerY() { return y + (height * 0.5); }
+
     property int distanceToEnd: 255;
     property var gunsInRange: new Array;
     property bool isActiveTarget: false

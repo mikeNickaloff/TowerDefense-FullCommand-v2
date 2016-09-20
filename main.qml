@@ -18,56 +18,20 @@ Window {
         width: 640
         height: 620
 
-        anchors.top: hudRect.bottom
-
-
-
-
-
-
-
-
-
+        anchors.top: scoreHUD.bottom
 
     }
 
-    Rectangle {
-        id: hudRect
+
+
+    ScoreHUDVisual {
+        id: scoreHUD
+
         height: 20
         width: 580
         x: 0
         y: 0
-        color: "transparent"
-        ScoreHUD {
-            Row {
-                Text {
-                    text: "Money: $" + game.money
-                    font.family: "Consolas"
-                    horizontalAlignment: Text.AlignHCenter
-                    style: Text.Raised
-                    font.pointSize: 12
-                    width: 200
-                    styleColor: "#0aec28"
-
-                    color: "#0aec28"
-                }
-                Text {
-                    text: "Level: " + game.level
-                    font.family: "Consolas"
-                    horizontalAlignment: Text.AlignHCenter
-                    style: Text.Raised
-                    font.pointSize: 12
-                    width: 200
-                    styleColor: "#0aec28"
-
-                    color: "#0aec28"
-                }
-
-            }
-        }
     }
-
-
 
 
     function create_tower_chooser() {
@@ -79,115 +43,18 @@ Window {
 
     TowerChooserVisual {
         id: towerChooser;
+        function toggle_menu(makeVisible) {
+            towerChooser.visible = makeVisible;
+            towerChooser.enabled = makeVisible;
+            towerUpgradeMenu.visible = !makeVisible;
+            towerUpgradeMenu.enabled = !makeVisible;
+        }
     }
 
 
 
-
-
-
-    TowerUpgradeMenu {
+    TowerUpgradeMenuVisual {
         id: towerUpgradeMenu
-        height: 480
-        width: 270
-        anchors.right: background.right
-        z: 100
-        opacity: 0
-        onVisibleChanged: {
-            if (visible == true) {
-                towerChooser.visible = false;
-                towerChooser.enabled = false;
-            }
-        }
-
-        property Gun gun
-        signal upgradeRange(Gun i_gun)
-        signal upgradeDamage(Gun i_gun)
-        function set_next_levels(range_new_level, damage_new_level) {
-            var gu = towerUpgradeMenu.gun;
-            var rangeCost = gu.gunVisual.getRangeCost(gu.gunRangeLevel + 1);
-            rangeButtonText.text = "Range -> [" + Math.round(range_new_level) + "] Cost: $" + Math.round(rangeCost);
-            var damageCost = gu.gunVisual.getDamageCost(gu.gunDamageLevel + 1);
-            damageButtonText.text = "Damage -> [" + Math.round(damage_new_level) + "] Cost: $" + Math.round(damageCost);
-
-        }
-
-        Column {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.verticalCenter: parent.verticalCenter
-
-            spacing: 5
-            Timer {
-                id: fixUpgradeMenuColors
-                interval:  500
-                repeat: false
-                running: false
-                onTriggered: {
-                    rangeButton.color = "lightblue";
-                    damageButton.color = "gold";
-                }
-            }
-            Rectangle {
-
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        var gu = towerUpgradeMenu.gun;
-                        var rangeCost = gu.gunVisual.getRangeCost(1 + gu.gunRangeLevel);
-                        if (game.money > rangeCost) {
-                            towerUpgradeMenu.upgradeRange(towerUpgradeMenu.gun);
-                            rangeButton.color = "gray";
-                            fixUpgradeMenuColors.running = true;
-                        } else {
-
-
-                        }
-
-                    }
-                }
-                id: rangeButton
-                color: "lightblue"; radius: 2.0
-                width: 300; height: 30;
-
-                Text { id: rangeButtonText; anchors.centerIn: parent
-                    font.pointSize: 12; text: "Range" } }
-
-            Rectangle {
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        var gu = towerUpgradeMenu.gun;
-                        var damageCost = gu.gunVisual.getDamageCost(gu.gunDamageLevel + 1);
-                        if (damageCost < game.money) {
-                            towerUpgradeMenu.upgradeDamage(towerUpgradeMenu.gun);
-                            damageButton.color = "gray";
-                            fixUpgradeMenuColors.running = true;
-                        }
-                    }
-                }
-                id: damageButton
-                color: "darkgreen"; radius: 2.0
-                width: 300; height: 30
-                Text { id:damageButtonText; anchors.centerIn: parent
-                    font.pointSize: 12; text: "Damage" } }
-            Rectangle {
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        towerUpgradeMenu.enabled = false;
-                        towerUpgradeMenu.opacity = 0;
-                    }
-                }
-                color: "lightgreen"; radius: 0
-                width: 300; height: 30
-                Text { anchors.centerIn: parent
-                    font.pointSize: 12; text: "Close" } }
-
-
-
-        }
     }
 
 
@@ -477,8 +344,8 @@ Window {
 
                 }
             }
-            var b = 2;
-            if (gu.gunType == 2) { b = 4; }
+            var b = 1;
+            if (gu.gunType == 2) { b = 2; }
             for (var q=0; q<b; q++) {
                 create_projectile(gu, gu.gunVisual.x, gu.gunVisual.y);
             }
@@ -690,8 +557,8 @@ Window {
     }
     property int enemyCount: 0;
     property int waveCount: 0;
-    property int numEnemiesPerWave: 12
-    property int numWavesPerLevel: 1
+    property int numEnemiesPerWave: 4
+    property int numWavesPerLevel: 3
     property int curAttackerArrayStart: 0
     property int curAttackerArrayStop : 50
     property int numAttackersPerFrame: 50
@@ -731,7 +598,7 @@ Window {
     }
     Timer {
         id: timerCreateEnemy;
-        interval: 1700;
+        interval: 4000;
         running: false;
         repeat: true;
         onTriggered: {
@@ -741,13 +608,13 @@ Window {
                 for (var g=0; g<game.board.guns.length; g++) {
                     var gu = game.board.guns[g];
 
-                       // request_connect(gu);
+                    // request_connect(gu);
 
                 }
 
             }
 
-            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),1, 4);
+            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),(waveCount + 1), 2 + (Math.random() * 5));
             enemyCount++;
 
             /*if (enemyCount == 0) { init_attackers(); } else { */
@@ -773,7 +640,7 @@ Window {
     property int stopO: 0;
     Timer {
         id: timerRotateGuns;
-        interval: 140
+        interval: 170
         running: true;
         repeat: true;
 
@@ -790,12 +657,12 @@ Window {
                         var sq = game.board.squares[s];
                         sq.squareVisual.isActiveTarget = false;
                     }
-                   // for (var g=0; g<game.board.guns.length; g++) {
-                     //   var gu = game.board.guns[g];
-                        //request_disconnect(gu);
-                       // gu.gunVisual.targetDistance = 9999
-                        // gu.gunVisual.closest_sq = null;
-                   // }
+                    // for (var g=0; g<game.board.guns.length; g++) {
+                    //   var gu = game.board.guns[g];
+                    //request_disconnect(gu);
+                    // gu.gunVisual.targetDistance = 9999
+                    // gu.gunVisual.closest_sq = null;
+                    // }
 
                     timerRotateGuns.repeat = false;
                     timerRotateGuns.running = false;

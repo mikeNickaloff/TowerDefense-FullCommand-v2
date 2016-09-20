@@ -80,9 +80,11 @@ Item {
                 bullet.target_y = targetY;
                 bullet.finito = false;
                 bullet.target_squareVisual = targetSquareVisual
+                //bullet.is_at_point.connect(test_point);
                 bullet.startAnim();
                 _bullets[c] = bullet;
                 bullet.opacity = 1.0;
+
                 _ammo[c] = null;
                 //c = _ammo.length + 1;
                 if (gun.gunType == 2) {
@@ -104,6 +106,7 @@ Item {
                 if (bullet.finito == true) {
                     ammo[c] = bullet;
                     bullet.opacity = 0;
+                  //  bullet.is_at_point.disconnect(test_point);
                     bullets[c] = null;
                     bullet.x = centerX();
                     bullet.y = centerY();
@@ -113,6 +116,11 @@ Item {
         }
     }
     property var availableTargetSquares: new Array
+
+    function test_point(xval, yval, prox_dist) {
+        console.log(xval + " " + yval + " " + prox_dist);
+    }
+
     Image {
         source: "./images/guns/" + gun.gunType + ".png"
         anchors.centerIn: parent

@@ -1,5 +1,7 @@
 import QtQuick 2.5
 import com.towerdefense.fullcommand 2.0
+import QtQuick.Particles 2.0
+
 
 
 Item {
@@ -23,29 +25,34 @@ Item {
 
 
 
-     property var possibleHitSquares: new Array
+    property var possibleHitSquares: new Array
 
     signal arrivedAtTarget(var i_target_x, var i_target_y, var i_min_damage, var i_max_damage, var i_splash_distance, var target_squareVisual);
 
     ParallelAnimation {
-           running: false;
-           id: anim1
-           NumberAnimation { property: "x"; target: proj; from: origin_x; to:  target_x; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
-           NumberAnimation { property: "y"; target: proj; from: origin_y; to: target_y; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
-           NumberAnimation { property: "opacity"; target: proj; from: 0; to: 1.0; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
-           onStopped: {
-               //target_x = x;
-               //target_y = y;
-             finito = true;
-             arrivedAtTarget(target_x, target_y, min_damage, max_damage, splash_distance, target_squareVisual);
-               target_squareVisual.projectile_hit(min_damage, max_damage, splash_distance, projectile_type);
-               proj.opacity = 0;
-           }
-       }
+        running: false;
+        id: anim1
+        XAnimator {target: proj; from: origin_x; to:  target_x; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
+        YAnimator { target: proj; from: origin_y; to: target_y; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
+
+
+       //NumberAnimation { property: "opacity"; target: proj; from: 1.0; to: 0.2; duration: (Math.max(Math.abs(origin_x - target_x), Math.abs(origin_y - target_y)) / speed) * 25 }
+        onStopped: {
+            //target_x = x;
+            //target_y = y;
+            finito = true;
+            arrivedAtTarget(target_x, target_y, min_damage, max_damage, splash_distance, target_squareVisual);
+            target_squareVisual.projectile_hit(min_damage, max_damage, splash_distance, projectile_type);
+            proj.opacity = 0;
+        }
+    }
     function startAnim() {
         if (!anim1.running) {
             finito = false;
             anim1.restart();
+
+
+
         }
     }
 
@@ -56,5 +63,9 @@ Item {
         height: parent.height
 
     }
+
+
+
+
 
 }
