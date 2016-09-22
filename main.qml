@@ -23,14 +23,14 @@ Window {
     SequentialAnimation {
         id: animation_rotate_scene
         RotationAnimation {
-            to: 35
+            to: 40
             duration: 1000
             target: sceneRotation
             property: "angle"
             easing.type: Easing.InOutQuad
         }
         RotationAnimation {
-            to: 35
+            to: 40
             duration: 1000
             target: particleSceneRotation
             property: "angle"
@@ -415,6 +415,8 @@ Window {
 
     }
 
+
+    /* unused */
     signal fire_weapons(var i_fire_group);
     function request_connect(i_gun) {
         i_gun.gunVisual.isArmed = true;
@@ -470,8 +472,8 @@ Window {
                                     gu.gunVisual.request_connect.connect(request_connect);
                                     gu.gunVisual.request_disconnect.connect(request_disconnect);
                                     //sqEl.isActiveTargetChanged.connect(gu.gunVisual.find_target);
-                                    sqEl.becameActiveTarget.connect(gu.gunVisual.check_new_target);
-                                    sqEl.lostActiveTarget.connect(gu.gunVisual.lost_active_target);
+                                 //   sqEl.becameActiveTarget.connect(gu.gunVisual.check_new_target);
+                                   // sqEl.lostActiveTarget.connect(gu.gunVisual.lost_active_target);
 
                                 }
                             }
@@ -721,9 +723,10 @@ Window {
 
 
 
-    Timer {
+/*    Timer {
         id: timerSpawn;
-        interval: 17500; running:false; repeat: true;
+        interval: numEnemiesPerWave * numWavesPerLevel * timerCreateEnemy.interval; running:false; repeat: false;
+
         onTriggered: function() {
 
             enemyCount = 0;
@@ -733,7 +736,7 @@ Window {
 
 
         }
-    }
+    }*/
     Timer {
         id: timerCreateEnemy;
         interval: 4000;
@@ -755,7 +758,7 @@ Window {
 
             if (timerEnemyStep.running == false) { timerEnemyStep.running = true; timerEnemyStep.restart(); }
 
-            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),(waveCount + 1), 0.2 * (2 + (Math.random() * 5)));
+            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),(waveCount + 1), 0.2 * (5 + (Math.random() * 5)));
             enemyCount++;
 
             /*if (enemyCount == 0) { init_attackers(); } else { */
@@ -768,9 +771,10 @@ Window {
 
             if (enemyCount > numEnemiesPerWave) {
                 waveCount++;
+                enemyCount = 0;
                 if (waveCount > numWavesPerLevel) { waveCount = 0; game.level = game.level + 1; console.log("Game level is now " + game.level); }
-                timerCreateEnemy.running = false;
-                timerCreateEnemy.stop();
+                //timerCreateEnemy.running = false;
+               // timerCreateEnemy.stop();
                 //    timerSpawn.start();
 
 
@@ -787,8 +791,11 @@ Window {
             var enemies = game.board.attackers;
             if (enemies.length > 0) {
                 for (var a=0; a<enemies.length; a++) {
-                    var att = enemies[a].attackerVisual;
-                    att.stepOnce();
+                    var att = enemies[a];
+                    if (att != null) {
+                        var attViz = att.attackerVisual;
+                        attViz.stepOnce();
+                    }
                 }
             }
         }
@@ -807,11 +814,45 @@ Window {
             if (rotO == -1) { init_squares(); init_guns(); rotO = 0; stopO = rotO + 1; }
             //for (var f=0; f<2; f++) {
             if (rotO > numFireGroups) { rotO = 0; stopO = 1; }
-            fire_weapons(rotO);
+            var attackers = game.board.attackers;
+            var guns = game.board.guns;
+
+
+            //if (attackers.length > guns.length) {
+
+            for (var w=0; w<guns.length; w++) {
+                if ((guns[w] != null) && (guns[w].gunVisual != null)) {
+                    var optimalPathCount = 99999;
+                    var optimalAttacker = null;
+
+                    for (var u=0; u<attackers.length; u++) {
+                        if ((attackers[u] != null) && (attackers[u].attackerVisual != null)) {
+                          //  console.log("checking if " + attackers[u] + " Is in range of " + guns[w]);
+                            var inRange = guns[w].gunVisual.isEnemyInRange(attackers[u].attackerVisual.centerX(), attackers[u].attackerVisual.centerY());
+                            console.log(inRange);
+                            if (inRange == true) {
+                                if (attackers[u].distanceToEnd <= optimalPathCount) {
+                                    optimalAttacker = attackers[u];
+                                    optimalPathCount = attackers[u].distanceToEnd;
+                                }
+                            }
+                        }
+                    }
+                    //console.log(optimalAttacker + " at dist " + optimalPathCount);
+                    guns[w].gunVisual.optimalDistance = optimalPathCount;
+                    guns[w].gunVisual.optimalAttacker = optimalAttacker;
+                    if (optimalAttacker != null) {
+
+                     guns[w].gunVisual.fire_weapon();
+                    }
+                }
+            }
+            //}
+            //fire_weapons(rotO);
             rotO++;
             stopO++;
-            if (((rotO % 3) == 0) || (rotO == 0)) {
-                if (game.board.attackers.length == 0) {
+            //if (((rotO % 3) == 0) || (rotO == 0)) {
+//                if (game.board.attackers.length == 0) {
                     //  for (var s=0; s<game.board.squares.length; s++) {
                     //     var sq = game.board.squares[s];
                     //    sq.squareVisual.isActiveTarget = false;
@@ -823,17 +864,17 @@ Window {
                     // gu.gunVisual.closest_sq = null;
                     // }
 
-                    timerRotateGuns.repeat = false;
-                    timerRotateGuns.running = false;
-                    timerRotateGuns.stop();
-                    timerEnemyStep.stop();
+                    //timerRotateGuns.repeat = false;
+                    //timerRotateGuns.running = false;
+                    //timerRotateGuns.stop();
+                    //timerEnemyStep.stop();
 
-                } else {
+  //              } else {
 
 
 
                     //}
-                }
+    //            }
 
                 /* if (stopO > game.board.guns.length) { stopO = game.board.guns.length; }
 
@@ -870,7 +911,7 @@ Window {
             }*/
 
                 //timerRotateGuns.start();
-            }
+         //   }
 
         }
     }
@@ -1032,7 +1073,7 @@ Window {
             ParticleGroup {
                 name: "lit"
                 duration: 10000
-                onEntered: score++;
+                //onEntered: score++;
                 TrailEmitter {
                     id: fireballFlame
                     group: "flame"
@@ -1179,7 +1220,7 @@ Window {
 
         ImageParticle {
             objectName: "asdf"
-            groups: ["asdf"]
+            groups: ["asdf", "lit"]
             source: "./src_qml/images/particles/particle.png"
             color: "#e3d253"
             colorVariation: 0
@@ -1318,10 +1359,11 @@ Window {
                 id: shellRound
                 Emitter {
                     id: blaster
-                    height: 0
+                    height: 2
+                    width: 2
                     emitRate: 1
-
-                    lifeSpan: 1400//TODO: Infinite & kill zone
+                    maximumEmitted: 1
+                    lifeSpan: 800//TODO: Infinite & kill zone
                     size: 24
                     sizeVariation: 4
                     velocity: PointDirection {x:(0 - (particleOverlay.width * 0.5)); xVariation: 00; y: (0 - (particleOverlay.height * 0.5))}

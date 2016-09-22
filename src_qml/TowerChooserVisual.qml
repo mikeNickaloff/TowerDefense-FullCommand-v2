@@ -221,7 +221,7 @@ TowerChooser {
 
                     }
                     if (towerChooser.builtFirstTower == false) {
-                        timerSpawn.running = true;
+                        //timerSpawn.running = true;
                         timerCreateEnemy.running = true;
                         towerChooser.builtFirstTower = true;
                     }

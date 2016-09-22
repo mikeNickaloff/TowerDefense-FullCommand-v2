@@ -186,7 +186,7 @@ Item {
                            startY = viz.y
                            endX = attacker.target.squareVisual.x
                            endY = attacker.target.squareVisual.y
-                           attacker.target.squareVisual.projectile_hit.connect(projectile_hit);
+                        //   attacker.target.squareVisual.projectile_hit.connect(projectile_hit);
                           //stepsComplete();
 
                        } else {
@@ -226,4 +226,7 @@ Item {
         var tl = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
         return tl;
     }
+
+    function centerX() { return x + (width * 0.5); }
+    function centerY() { return y + (height * 0.5); }
 }

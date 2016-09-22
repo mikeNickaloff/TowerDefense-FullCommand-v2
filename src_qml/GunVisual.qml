@@ -15,6 +15,8 @@ Item {
     property Game game;
     property int fireGroup: 0
     property bool isArmed: false
+    property var optimalDistance
+    property var optimalAttacker
 
     function centerX() { return x + (width * 0.5); }
     function centerY() { return y + (height * 0.5); }
@@ -63,14 +65,23 @@ Item {
             }
         }
     }
+    function fire_weapon() {
+        if (next_fire < Date.now()) {
+            fire_projectile(optimalAttacker.attackerVisual.centerX() + ((gun.gunMaxOffsetLowAccuracy * 0.5) - (2 * Math.random() * gun.gunMaxOffsetLowAccuracy)), optimalAttacker.attackerVisual.y + ((gun.gunMaxOffsetLowAccuracy * 0.5) - (2 * Math.random() * gun.gunMaxOffsetHighAccuracy)));
+            next_fire = parseInt(Date.now() + gun.gunFireDelay);
+        }
 
+
+    }
 
     function add_ammo_round(projectileVisualObject) {
         ammo.push(projectileVisualObject);
 
     }
-    function fire_projectile(targetX, targetY, targetSquareVisual) {
-
+    function fire_projectile(targetX, targetY) {
+      //  console.log("Firing projectile at " + targetX + " and " + targetY);
+        var tmpAngle = angleTo(centerX(), centerY(), targetX, targetY);
+        gunImage.rotation = tmpAngle;
         var _ammo = ammo;
         var _bullets = bullets;
         for (var c=0; c<_ammo.length; c++) {
@@ -79,7 +90,8 @@ Item {
                 bullet.target_x = targetX;
                 bullet.target_y = targetY;
                 bullet.finito = false;
-                bullet.target_squareVisual = targetSquareVisual
+                //bullet.target_squareVisual = targetSquareVisual
+                bullet.target_attackerVisual = optimalAttacker.attackerVisual;
                 //bullet.is_at_point.connect(test_point);
                 bullet.startAnim();
                 _bullets[c] = bullet;
@@ -182,7 +194,7 @@ Item {
     }
     function lost_active_target(i_square) {
 
-        find_target3();
+        //find_target3();
 
 
         // if (closest_sq.squareVisual.isActiveTarget == false) {
@@ -207,14 +219,16 @@ Item {
 
 
     function isEnemyInRange(enemyX, enemyY) {
-        var radius = getRange();
+        var radius = getRange(gun.gunRangeLevel);
         var dx = centerX() - enemyX;
         var dy = centerY() - enemyY;
         dx *= dx;
         dy *= dy;
         var distanceSquared = dx + dy;
         var radiusSquared = radius * radius;
-        return distanceSquared <= radiusSquared;
+        return  distanceSquared <= radiusSquared;
+
+
     }
 
     function centerPoint(v1, v2) {

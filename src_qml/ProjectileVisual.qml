@@ -21,13 +21,14 @@ Item {
     property bool finito: false;
 
     property SquareVisual target_squareVisual;
+    property AttackerVisual target_attackerVisual;
     id: proj
 
 
 
     property var possibleHitSquares: new Array
 
-    signal arrivedAtTarget(var i_target_x, var i_target_y, var i_min_damage, var i_max_damage, var i_splash_distance, var target_squareVisual);
+    signal arrivedAtTarget(var i_target_x, var i_target_y, var i_min_damage, var i_max_damage, var i_splash_distance, var target_attackerVisual)
 
     ParallelAnimation {
         running: false;
@@ -41,8 +42,8 @@ Item {
             //target_x = x;
             //target_y = y;
             finito = true;
-            arrivedAtTarget(target_x, target_y, min_damage, max_damage, splash_distance, target_squareVisual);
-            target_squareVisual.projectile_hit(min_damage, max_damage, splash_distance, projectile_type);
+            arrivedAtTarget(target_x, target_y, min_damage, max_damage, splash_distance, target_attackerVisual);
+            target_attackerVisual.projectile_hit(min_damage, max_damage, splash_distance, projectile_type);
             proj.opacity = 0;
         }
     }
