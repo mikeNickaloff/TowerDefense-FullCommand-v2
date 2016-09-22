@@ -44,5 +44,6 @@
         <file>src_qml/images/attackers/2.png</file>
         <file>src_qml/images/attackers/3.png</file>
         <file>src_qml/images/attackers/4.png</file>
+        <file>src_qml/images/particles/particleA.png</file>
     </qresource>
 </RCC>

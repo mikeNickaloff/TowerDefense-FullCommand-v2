@@ -4,8 +4,8 @@
 #include <QQuickItem>
 
 
-Square::Square(QObject *parent) :  QObject(parent)
+Square::Square() :  QQuickItem ()
 {
-this->m_gun = new Gun(this);
-    m_gun->isBlank = true;
+//this->m_gun = new Gun(this);
+    //m_gun->isBlank = true;
 }

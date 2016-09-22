@@ -6,6 +6,8 @@
 #include <QVariant>
 #include <QQuickItem>
 class Square;
+class Game;
+class Board;
 class Attacker : public QObject
 {
     Q_OBJECT
@@ -19,6 +21,12 @@ class Attacker : public QObject
     Q_PROPERTY(QObject* attackerVisual MEMBER m_attackerVisual NOTIFY attackerVisualChanged)
     Q_PROPERTY(bool atEndOfPath READ isAtEndOfPath)
     Q_PROPERTY(QVariant distanceToEnd READ m_path_count)
+    Q_PROPERTY(int startX MEMBER attacker_startX NOTIFY attacker_startX_changed)
+    Q_PROPERTY(int endX MEMBER attacker_endX NOTIFY attacker_endX_changed)
+    Q_PROPERTY(int startY MEMBER attacker_startX NOTIFY attacker_startY_changed)
+    Q_PROPERTY(int endY MEMBER attacker_endX NOTIFY attacker_endY_changed)
+    Q_PROPERTY(Game* game MEMBER m_game NOTIFY game_changed)
+    Q_PROPERTY(Attacker* attacker READ thisObject)
 
 public:
     explicit Attacker(QObject *parent = 0);
@@ -48,6 +56,13 @@ public:
     QVariant m_health;
     QVariant m_path_count() { return m_path.count(); }
 
+    int attacker_startX;
+    int attacker_startY;
+    int attacker_endX;
+    int attacker_endY;
+    Game* m_game;
+    Attacker* thisObject() { return this; }
+
 signals:
     void speedChanged(QVariant newSpeed);
     void attackerTypeChanged(int newAttackerType);
@@ -57,6 +72,16 @@ signals:
     void yposChanged(QVariant newVal);
     void attackerVisualChanged(QObject* newObj);
     void healthChanged(QVariant newVal);
+    void attacker_startX_changed(int new_startX);
+    void attacker_startY_changed(int new_startY);
+    void attacker_endX_changed(int new_endX);
+    void attacker_endY_changed(int new_endY);
+    void game_changed(Game* new_game);
+    void show_particles_fire(QVariant xPos, QVariant yPos);
+    void show_particles_flash(QVariant xPos, QVariant yPos);
+    void show_particles_tiny(QVariant xPos, QVariant yPos);
+    void removeAttacker(Attacker* attacker);
+    void attackerPathFinished(Attacker* attacker);
 
 public slots:
     void next_target();

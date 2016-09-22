@@ -61,7 +61,7 @@ void Board::placeWall(int row, int col) {
 
 void Board::placeSquare(int row, int col) {
     eraseTile(row, col);
-    new_square = new Square(this);
+    new_square = new Square();
     QPair<int, int> pair = qMakePair(row, col);
     m_squares[pair] = new_square;
     //qDebug() << "placed square at row/col " << row << "/" << col;
@@ -181,7 +181,7 @@ void Board::placeAttacker(int row, int col, int attackerType, QVariant speed) {
         m_attackers[u] = new_attacker;
         new_attacker->m_speed = speed;
         new_attacker->m_attackerType = attackerType;
-
+        new_attacker->m_game = m_game;
 
 
 
@@ -231,6 +231,18 @@ void Board::removeAttacker(Attacker* att) {
         m_attackers.remove(keyToRemove);
 
     }
+    QVariantList rv;
+    QList<Attacker*> tmp_attackers;
+    tmp_attackers << this->m_attackers.values();
+    // int u = 0;
+    //qDebug() << tmp_squares;
+    foreach (Attacker* att, tmp_attackers) {
+        //        u++;
+        rv.append(QVariant::fromValue(att));
+    }
+    v_attackers.clear();
+    v_attackers = rv;
+
 }
 void Board::removeGun(int row, int col) {
     m_guns.remove(qMakePair(row, col));

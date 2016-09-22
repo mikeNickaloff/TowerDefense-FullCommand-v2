@@ -3,7 +3,9 @@
 
 #include <QtCore/QObject>
 #include <QtCore/qglobal.h>
+#include <QQuickItem>
 
+class Square;
 class Start : public QObject
 {
     Q_OBJECT

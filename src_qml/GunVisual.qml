@@ -5,7 +5,7 @@ import com.towerdefense.fullcommand 2.0
 Item {
 
     property Gun gun
-    property AttackerVisual target
+    property Attacker target
     property var next_fire: 1
     property int targetDistance: 2550;
     property Square closest_sq: null;
@@ -232,7 +232,7 @@ Item {
         var best_cy = 0;
         for (var i=0; i<tmplist.length; i++) {
             var tmp_attacker = tmplist[i];
-            if ((tmp_attacker != null) && (tmp_attacker.attackerVisual != null)) {
+            if ((tmp_attacker != null) && (tmp_attacker != null)) {
                 var tmp_attacker_cur = tmp_attacker.current.squareVisual;
                 var tmp_attacker_target = tmp_attacker.target.squareVisual;
                 var cx = centerPoint(tmp_attacker_cur.x, tmp_attacker_target.x);

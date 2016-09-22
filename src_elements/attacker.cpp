@@ -1,6 +1,8 @@
 #include "attacker.h"
 #include "square.h"
 #include <QQuickItem>
+#include "../src_game/game.h"
+#include "../src_elements/board.h"
 Attacker::Attacker(QObject *parent) : QObject(parent)
 {
 m_xpos = 0;

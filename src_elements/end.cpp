@@ -1,7 +1,7 @@
 #include "end.h"
 #include "square.h"
 #include <QObject>
-End::End(QObject *parent) : Square(parent)
+End::End(QObject *parent) : Square()
 {
 
 }

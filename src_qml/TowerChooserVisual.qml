@@ -9,8 +9,8 @@ import QtQuick.Dialogs 1.2
 TowerChooser {
     id: towerChooser
     z: 105
-    width: 120
-    height: 500
+    height: background.height
+    width: background.width * 0.2
     visible: false
     enabled: false
     anchors.right: background.right
@@ -72,15 +72,15 @@ TowerChooser {
             gunRange: 150
             gunRangeHighAccuracy: 0.95
             gunDamageHighAccuracy: 1.45
-            gunMaxOffsetHighAccuracy: 15
+            gunMaxOffsetHighAccuracy: 1
 
             gunRangeLowAccuracy: 1.35
             gunDamageLowAccuracy: 0.85
-            gunMaxOffsetLowAccuracy: 50
+            gunMaxOffsetLowAccuracy: 10
 
             gunFireDelay: 150
 
-            gunProjectileSpeed: 24
+            gunProjectileSpeed: 54
             // double turnRate;
 
             gunAttacksAir: true
@@ -93,8 +93,8 @@ TowerChooser {
             gunSplashRadius: 5
             gunProximityDistance: 5
 
-            gunUpgradeRangeAmountMultiplier: 1.12
-            gunUpgradeRangeCostMultiplier: 4
+            gunUpgradeRangeAmountMultiplier: 1.04
+            gunUpgradeRangeCostMultiplier: 8
             gunUpgradeRangeCost: 2
 
 
@@ -119,9 +119,9 @@ TowerChooser {
     Component {
         id: gunShopDelegate
         Rectangle {
-            height: 200
+            height: background.height * 0.3
             z: 200
-            width: 150
+            width: background.width * 0.17
             anchors.margins: 12
              border.width: 1
              border.color: "black"
@@ -134,8 +134,8 @@ TowerChooser {
 
                     source: "./images/guns/" + gunType + ".png"
 
-                    width: 64
-                    height: 64
+                    width: background.width * 0.1
+                    height: background.height * 0.1
 
 
 
@@ -161,8 +161,8 @@ TowerChooser {
 
             MouseArea {
 
-                width: 105
-                height: 200
+                width: parent.width
+                height: parent.height
                 id:mouse_area
                 onClicked: {
 
@@ -235,15 +235,15 @@ TowerChooser {
     }
     Rectangle {
         color: "white"
-        width: 175
-        height: parent.height
+        width: background.width
+        height: background.height
 
         z: 100
 
 
         ListView {
-            width: parent.width
-            height: parent.height
+            width: background.width
+            height: background.height
             z: 105
 
 

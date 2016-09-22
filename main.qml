@@ -9,16 +9,149 @@ import "src_js/logic.js" as Logic
 import "src_qml"
 Window {
     visible: true
-    width: 640
-    height: 640
-    title: qsTr("Tower Defense - Complete Command v2 - 5.2 beta")
 
+    width: Screen.desktopAvailableWidth * 0.85
+    height: Screen.desktopAvailableHeight * 0.85
+    title: qsTr("Tower Defense - Complete Command v2 - 5.2 beta")
+    color: "black"
+
+    Component.onCompleted:  {
+        animation_rotate_scene.start();
+        particleOverlay.shellEmit(Math.random() * width, height * 0.5);
+
+    }
+    SequentialAnimation {
+        id: animation_rotate_scene
+        RotationAnimation {
+            to: 35
+            duration: 1000
+            target: sceneRotation
+            property: "angle"
+            easing.type: Easing.InOutQuad
+        }
+        RotationAnimation {
+            to: 35
+            duration: 1000
+            target: particleSceneRotation
+            property: "angle"
+            easing.type: Easing.InOutQuad
+        }
+    }
+    ParallelAnimation {
+        id: animation_translate_scene
+        NumberAnimation {
+            to: bg_x_translation
+            duration: 100
+            target: sceneTranslation
+            property: "x"
+        }
+        NumberAnimation {
+            to: bg_y_translation
+            duration: 100
+            target: sceneTranslation
+            property: "y"
+        }
+        NumberAnimation {
+            to: bg_x_translation
+            duration: 100
+            target: particleSceneTranslation
+            property: "x"
+        }
+        NumberAnimation {
+            to: bg_y_translation
+            duration: 100
+            target: particleSceneTranslation
+            property: "y"
+        }
+    }
+    property var bg_x_translation: 0
+    property var bg_y_translation: 0
     Item {
         id: background
-        width: 640
-        height: 620
+        width: Screen.desktopAvailableWidth * 0.85
+        height: Screen.desktopAvailableHeight * 0.85 * 0.95
+        Rectangle {
+            color: "black"
+            anchors.fill: parent
+            z: -1
+        }
+        transform: [
+            Rotation {
+                id: sceneRotation
+                axis.x: 1
+                axis.y: 0
+                axis.z: 0
+                origin.x: width / 2
+                origin.y: height / 2
+            },
+            Translate {
+                id: sceneTranslation
+                x: bg_x_translation
+                y: bg_y_translation
+            }
+        ]
+
+
 
         anchors.top: scoreHUD.bottom
+
+
+        /*
+
+        Flickable {
+            id: flick
+            anchors.fill: parent
+            contentWidth: 500
+            contentHeight: 500
+            z: 999
+            PinchArea {
+                width: Math.max(flick.contentWidth, flick.width)
+                height: Math.max(flick.contentHeight, flick.height)
+
+                property real initialWidth
+                property real initialHeight
+                //![0]
+                onPinchStarted: {
+                    initialWidth = flick.contentWidth
+                    initialHeight = flick.contentHeight
+                }
+
+                onPinchUpdated: {
+                    // adjust content pos due to drag
+                    flick.contentX += pinch.previousCenter.x - pinch.center.x
+                    flick.contentY += pinch.previousCenter.y - pinch.center.y
+
+                    // resize content
+                    flick.resizeContent(initialWidth * pinch.scale, initialHeight * pinch.scale, pinch.center)
+                }
+
+                onPinchFinished: {
+                    // Move its content within bounds.
+                    flick.returnToBounds()
+                }
+                //![0]
+
+                Rectangle {
+                    width: flick.contentWidth
+                    height: flick.contentHeight
+                    color: "white"
+                    Image {
+                        anchors.fill: parent
+                        source: "./src_qml/images/guns/tanks.png"
+                        MouseArea {
+                            anchors.fill: parent
+                            onDoubleClicked: {
+                                flick.contentWidth = 500
+                                flick.contentHeight = 500
+                            }
+                        }
+                    }
+                }
+            }
+        } */
+
+
+
 
     }
 
@@ -27,8 +160,8 @@ Window {
     ScoreHUDVisual {
         id: scoreHUD
 
-        height: 20
-        width: 580
+        height: background.height * 0.05
+        width: background.width
         x: 0
         y: 0
     }
@@ -43,6 +176,8 @@ Window {
 
     TowerChooserVisual {
         id: towerChooser;
+        width: background.width * 0.2
+        height: background.height * 0.8
         function toggle_menu(makeVisible) {
             towerChooser.visible = makeVisible;
             towerChooser.enabled = makeVisible;
@@ -55,6 +190,8 @@ Window {
 
     TowerUpgradeMenuVisual {
         id: towerUpgradeMenu
+        height: background.height * 0.75
+        width: background.width * 0.42
     }
 
 
@@ -423,24 +560,25 @@ Window {
     }
 
     function removeAttacker(attackerObject) {
-        var objattackercurrent = attackerObject.current;
-        var objattackertarget = attackerObject.target;
+        if (attackerObject != null) {
+            var objattackercurrent = attackerObject.current;
+            var objattackertarget = attackerObject.target;
 
-        var objattackercurrentsquareVisual = objattackercurrent.squareVisual;
-        var objattackertargetsquareVisual = objattackertarget.squareVisual;
+            var objattackercurrentsquareVisual = objattackercurrent.squareVisual;
+            var objattackertargetsquareVisual = objattackertarget.squareVisual;
 
 
-        //objattackercurrentsquareVisual.isActiveTarget = false;
-        objattackertargetsquareVisual.isActiveTarget = false;
-        var attObj = attackerObject;
-        var obj = attObj.attackerVisual;
+            //objattackercurrentsquareVisual.isActiveTarget = false;
+            objattackertargetsquareVisual.isActiveTarget = false;
+            var attObj = attackerObject;
+            var obj = attObj.attackerVisual;
 
-        obj.show_particles_fire.disconnect(particleOverlay.customEmit);
-        obj.show_particles_flash.disconnect(particleOverlay.flashEmit);
-        obj.show_particles_tiny.disconnect(particleOverlay.tinyEmit);
-        obj.destroy();
-        game.board.removeAttacker(attObj);
-
+            obj.show_particles_fire.disconnect(particleOverlay.customEmit);
+            obj.show_particles_flash.disconnect(particleOverlay.flashEmit);
+            obj.show_particles_tiny.disconnect(particleOverlay.tinyEmit);
+            obj.destroy();
+            game.board.removeAttacker(attObj);
+        }
 
     }
 
@@ -585,12 +723,12 @@ Window {
 
     Timer {
         id: timerSpawn;
-        interval: 35000; running:false; repeat: true;
+        interval: 17500; running:false; repeat: true;
         onTriggered: function() {
 
             enemyCount = 0;
 
-            timerCreateEnemy.running = true;
+            timerCreateEnemy.restart();
 
 
 
@@ -605,20 +743,23 @@ Window {
 
 
             if (timerRotateGuns.running == false) { timerRotateGuns.running = true; timerRotateGuns.repeat = true;
-                for (var g=0; g<game.board.guns.length; g++) {
-                    var gu = game.board.guns[g];
 
-                    // request_connect(gu);
+                // for (var g=0; g<game.board.guns.length; g++) {
+                //     var gu = game.board.guns[g];
 
-                }
+                // request_connect(gu);
+
+                //  }
 
             }
 
-            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),(waveCount + 1), 2 + (Math.random() * 5));
+            if (timerEnemyStep.running == false) { timerEnemyStep.running = true; timerEnemyStep.restart(); }
+
+            game.board.placeAttacker(1,Math.round(game.board.colCount * 0.5),(waveCount + 1), 0.2 * (2 + (Math.random() * 5)));
             enemyCount++;
 
             /*if (enemyCount == 0) { init_attackers(); } else { */
-            game.board.lastSpawnedAttacker.health = (30 * (game.level * 1.75));
+            game.board.lastSpawnedAttacker.health = (70 * (game.level * 1.75));
             create_atttacker(game.board.lastSpawnedAttacker);
 
 
@@ -629,6 +770,7 @@ Window {
                 waveCount++;
                 if (waveCount > numWavesPerLevel) { waveCount = 0; game.level = game.level + 1; console.log("Game level is now " + game.level); }
                 timerCreateEnemy.running = false;
+                timerCreateEnemy.stop();
                 //    timerSpawn.start();
 
 
@@ -636,11 +778,28 @@ Window {
         }
     }
 
+    Timer {
+        id: timerEnemyStep;
+        interval: 70
+        running: false
+        repeat: true
+        onTriggered:  {
+            var enemies = game.board.attackers;
+            if (enemies.length > 0) {
+                for (var a=0; a<enemies.length; a++) {
+                    var att = enemies[a].attackerVisual;
+                    att.stepOnce();
+                }
+            }
+        }
+    }
+
+
     property int rotO: -1;
     property int stopO: 0;
     Timer {
         id: timerRotateGuns;
-        interval: 170
+        interval: 200
         running: true;
         repeat: true;
 
@@ -653,10 +812,10 @@ Window {
             stopO++;
             if (((rotO % 3) == 0) || (rotO == 0)) {
                 if (game.board.attackers.length == 0) {
-                    for (var s=0; s<game.board.squares.length; s++) {
-                        var sq = game.board.squares[s];
-                        sq.squareVisual.isActiveTarget = false;
-                    }
+                    //  for (var s=0; s<game.board.squares.length; s++) {
+                    //     var sq = game.board.squares[s];
+                    //    sq.squareVisual.isActiveTarget = false;
+                    //}
                     // for (var g=0; g<game.board.guns.length; g++) {
                     //   var gu = game.board.guns[g];
                     //request_disconnect(gu);
@@ -666,7 +825,12 @@ Window {
 
                     timerRotateGuns.repeat = false;
                     timerRotateGuns.running = false;
+                    timerRotateGuns.stop();
+                    timerEnemyStep.stop();
+
                 } else {
+
+
 
                     //}
                 }
@@ -711,15 +875,56 @@ Window {
         }
     }
 
+    property var isDragModeOn: false
+    property var offset_start_x: 0
+    property var offset_start_y: 0
+    property var old_bg_x_translation: 0
+    property var old_bg_y_translation: 0
+    property var hide_chooser_mode: false
     MouseArea {
         anchors.fill: parent
+        onPressed: {
+            isDragModeOn = true;
+            offset_start_x = mouseX;
+            offset_start_y = mouseY;
+            old_bg_x_translation = bg_x_translation
+            old_bg_y_translation = bg_y_translation
+            hide_chooser_mode = false;
+        }
+        onPositionChanged:  {
+            if (isDragModeOn == true) {
+                var new_bg_x_translation;
+                var new_bg_y_translation;
+                new_bg_x_translation = (0.25 * (mouseX - offset_start_x));
+                new_bg_y_translation = (0.25 * (mouseY - offset_start_y));
+                if ((Math.abs(new_bg_x_translation) > 10) || (Math.abs(new_bg_y_translation) > 10)) {
+                    hide_chooser_mode = true;
+                    bg_x_translation = old_bg_x_translation + new_bg_x_translation;
+                    bg_y_translation = old_bg_y_translation + new_bg_y_translation;
+                    animation_translate_scene.restart();
+                }
+            }
+        }
+        onReleased:  {
+            isDragModeOn = false;
+            // hide_chooser_mode = false;
+        }
         onClicked: {
-            testBox.text = getTestArg(mouseX, mouseY);
+            if (hide_chooser_mode == false) {
+                testBox.text = getTestArg(mouseX, mouseY);
+            }
         }
         id: mousezone
         function getTestArg(mx, my) {
             if (game.board.squares.length > 0) {
                 var bgch = game.board.squares;
+                if ((towerChooser.visible == true) || (towerUpgradeMenu.visible == true)) {
+                    towerChooser.visible = false;
+                    towerChooser.enabled = false;
+                    towerUpgradeMenu.visible = false;
+                    towerUpgradeMenu.enabled = false;
+                    return "";
+                }
                 towerChooser.visible = false;
                 towerChooser.enabled = false;
                 towerUpgradeMenu.visible = false;
@@ -782,9 +987,112 @@ Window {
         width: background.width;
         height: background.height;
         anchors.fill: parent
-
+        transform: [
+            Rotation {
+                id: particleSceneRotation
+                axis.x: 1
+                axis.y: 0
+                axis.z: 0
+                origin.x: background.width / 2
+                origin.y: background.height / 2
+            },
+            Translate {
+                id: particleSceneTranslation
+                x: bg_x_translation
+                y: bg_y_translation
+            }
+        ]
         ParticleSystem {
             id: sys
+
+            ParticleGroup {
+                name: "unlit"
+                duration: 1000
+                to: {"lighting":1, "unlit":99}
+                ImageParticle {
+                    source: "./src_qml/images/particles/particleA.png"
+                    colorVariation: 0.1
+                    color: "#2060160f"
+                }
+                GroupGoal {
+                    whenCollidingWith: ["lit"]
+                    goalState: "lighting"
+                    jump: true
+                }
+            }
+            // ![unlit]
+            // ![lighting]
+            ParticleGroup {
+                name: "lighting"
+                duration: 100
+                to: {"lit":1}
+            }
+            // ![lighting]
+            // ![lit]
+            ParticleGroup {
+                name: "lit"
+                duration: 10000
+                onEntered: score++;
+                TrailEmitter {
+                    id: fireballFlame
+                    group: "flame"
+
+                    emitRatePerParticle: 38
+                    lifeSpan: 200
+                    emitWidth: 8
+                    emitHeight: 8
+
+                    size: 24
+                    sizeVariation: 0
+                    endSize: 4
+                }
+
+                TrailEmitter {
+                    id: fireballSmoke
+                    group: "smoke"
+                    // ![lit]
+
+                    emitRatePerParticle: 120
+                    lifeSpan: 2000
+                    emitWidth: 16
+                    emitHeight: 16
+
+                    velocity: PointDirection {yVariation: 16; xVariation: 16}
+                    acceleration: PointDirection {y: -16}
+
+                    size: 24
+                    sizeVariation: 8
+                    endSize: 8
+                }
+            }
+
+            ImageParticle {
+                id: smoke
+                anchors.fill: parent
+                groups: ["smoke"]
+                source: "qrc:///particleresources/glowdot.png"
+                colorVariation: 0
+                color: "#00111111"
+            }
+            ImageParticle {
+                id: pilot
+                anchors.fill: parent
+                groups: ["pilot"]
+                source: "qrc:///particleresources/glowdot.png"
+                redVariation: 0.01
+                blueVariation: 0.4
+                color: "#0010004f"
+            }
+            ImageParticle {
+                id: flame
+                anchors.fill: parent
+                groups: ["flame", "lit", "lighting"]
+                source: "./src_qml/images/particles/particleA.png"
+                colorVariation: 0.1
+                color: "#00ff400f"
+            }
+
+
         }
         ImageParticle {
             system: sys
@@ -858,14 +1166,14 @@ Window {
 
         function flashEmit(x, y) {
             var obj = flashParticle.createObject(particleOverlay);
-            obj.x = x;
-            obj.y = y;
+            obj.x = x + 10;
+            obj.y = y + 10;
             obj.enabled = true;
         }
         function tinyEmit(x, y) {
             var obj = tinyParticle.createObject(particleOverlay);
-            obj.x = x;
-            obj.y = y;
+            obj.x = x + 10;
+            obj.y = y + 10;
             obj.enabled = true;
         }
 
@@ -996,6 +1304,85 @@ Window {
 
 
         }
+
+
+        /* tank shell particle */
+        function shellEmit(x, y) {
+            var obj = shellRound.createObject(particleOverlay);
+            obj.x = x + 10;
+            obj.y = y + 10;
+            obj.enabled = true;
+        }
+
+            Component {
+                id: shellRound
+                Emitter {
+                    id: blaster
+                    height: 0
+                    emitRate: 1
+
+                    lifeSpan: 1400//TODO: Infinite & kill zone
+                    size: 24
+                    sizeVariation: 4
+                    velocity: PointDirection {x:(0 - (particleOverlay.width * 0.5)); xVariation: 00; y: (0 - (particleOverlay.height * 0.5))}
+                    //acceleration: PointDirection {}
+                    group: "lit"
+                    x: particleOverlay.width * 0.5
+                    y: particleOverlay.height * 0.5
+
+                    Timer {
+                        id: controlParticleTimer
+                        interval: blaster.lifeSpan
+                        running: true
+                        repeat:  false
+                        onTriggered:  {
+                            blaster.destroy();
+                        }
+                    }
+                }
+
+
+                /* Emitter {
+                id: flamer
+                x: 100
+                y: 300
+                group: "pilot"
+                emitRate: 80
+                lifeSpan: 600
+                size: 24
+                sizeVariation: 2
+                endSize: 0
+                velocity: PointDirection { y:-100; yVariation: 4; xVariation: 4 }
+                // ![groupgoal-pilot]
+                GroupGoal {
+                    groups: ["unlit"]
+                    goalState: "lit"
+                    jump: true
+                    system: particles
+                    x: -15
+                    y: -55
+                    height: 105
+                    width: 60
+                    shape: MaskShape {source: "../../images/matchmask.png"}
+                }
+                // ![groupgoal-pilot]
+            } */
+                // ![groupgoal-ma]
+                //Click to enflame
+                /* GroupGoal {
+                groups: ["unlit"]
+                goalState: "lighting"
+                jump: true
+                enabled: ma.pressed
+                width: 48
+                height: 48
+                x: ma.mouseX - width/2
+                 y: ma.mouseY - height/2
+            } */
+                // ![groupgoal-ma]
+
+            }
+
 
     }
     ListModel {

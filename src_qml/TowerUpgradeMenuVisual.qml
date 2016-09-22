@@ -5,8 +5,8 @@ import QtQuick.Layouts 1.3
 
 TowerUpgradeMenu {
     id: towerUpgradeMenu
-    height: 480
-    width: 270
+    width: background.width * 0.3
+    height: background.height * 0.5
     anchors.right: background.right
     z: 100
     opacity: 0
@@ -65,10 +65,10 @@ TowerUpgradeMenu {
             }
             id: rangeButton
             color: "lightblue"; radius: 2.0
-            width: 300; height: 30;
+            width: background.width * 0.5; height: background.height * 0.2;
 
             Text { id: rangeButtonText; anchors.centerIn: parent
-                font.pointSize: 12; text: "Range" } }
+                font.pointSize: 16; text: "Range" } }
 
         Rectangle {
 
@@ -86,9 +86,9 @@ TowerUpgradeMenu {
             }
             id: damageButton
             color: "darkgreen"; radius: 2.0
-            width: 300; height: 30
+            width: background.width * 0.5; height: background.height * 0.2;
             Text { id:damageButtonText; anchors.centerIn: parent
-                font.pointSize: 12; text: "Damage" } }
+                font.pointSize: 16; text: "Damage" } }
         Rectangle {
             MouseArea {
                 anchors.fill: parent
@@ -98,9 +98,9 @@ TowerUpgradeMenu {
                 }
             }
             color: "lightgreen"; radius: 0
-            width: 300; height: 30
+            width: background.width * 0.5; height: background.height * 0.2;
             Text { anchors.centerIn: parent
-                font.pointSize: 12; text: "Close" } }
+                font.pointSize: 16; text: "Close" } }
 
 
 
